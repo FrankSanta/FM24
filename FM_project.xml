@@ -8,6 +8,7 @@ const int N = 20;
 const int M = 10;
 const int N_resp = 2;     // numer of first responders
 const int T_fr = 5;       // assistance time of a first responder
+const int T_zr = 7;       // assistance time of a first responder
 const int Nv = 3;
 // const int N = ;
 
@@ -23,7 +24,7 @@ typedef pos_t[0, entities[FIRST_RESPONDER]-1] responders;
 typedef pos_t[0, entities[DRONE-1] drones;
 
 // Drone -&amp;gt; Civilian events
-urgent chan rescue[entities[SURVIVOR]], callFirstResponder[entities[SURVIVOR]], goToVictim[entities[FIRST_RESPONDER]];
+urgent chan rescue[entities[SURVIVOR]], callFirstResponder[entities[SURVIVOR]], waitForSurvivor[entities[FIRST_RESPONDER]], goToVictim[entities[FIRST_RESPONDER]];
 pos_t[0, entities[FIRST_RESPONDER]-1] victimPos;
  
 
@@ -59,45 +60,57 @@ int distance(pos_t pos1, pos_t pos2){
         dist_y = -dist_y;
     }
     return dist_x+dist_y;
+}
+
+post_t randomShift(){
+    int choice = random(3);
+    if (choice == 0)
+        return (pos_t) {.x = 0, .y=1};
+    if (choice == 1)
+        return (pos_t) {.x = 0, .y=-1};
+    if (choice == 2)
+        return (pos_t) {.x = 1, .y=1};
+    return (pos_t) {.x = 1, .y=-1};
+}
+
+  bool isOccupied(pos_t p) {
+    for (int i = 0; i &lt; entities[SURVIVOR]; i++) {
+        if (survivors[i].x == p.x &amp;&amp; survivors[i].y == p.y) {
+            return true;
+      }
+    for (int i = 0; i &lt; entities[RESPONDER]; i++) {
+        if (responders[i].x == p.x &amp;&amp; responders[i].y == p.y) {
+            return true;
+    }
+    for (int i = 0; i &lt; entities[VICTIM]; i++) {
+        if (victims[i].x == p.x &amp;&amp; victims[i].y == p.y) {
+            return true;
+    }
+    return false;
 }</declaration>
 	<template>
 		<name x="5" y="5">Responder</name>
 		<parameter>const id_resp id</parameter>
 		<declaration>// Place local declarations here.
 clock t_resp;
-int dist_p;
-pos_t pos;
 int id;
 
-process Responder(id_resp assignedId){
-    // Automaton definition
-    dist_p = 0;
+process Responder(id_resp assignedId, int assignedX, int assignedY){
     t_resp = 0;
     id = assignedId;
-    int x = random(N);
-    int y = random(M);
-
-    while (isOccupied(x, y) {
-        x = random(N);
-        y = random(M);
-    }
-
-    pos_x = x;
-    pos_y = y;
+    responders[id].x = assignedX;
+    responders[id].y = assignedY;
 }
 
-void move() {
-    // returns a value between -1 and +1
-    int x = -1 + random(2);
-    int y = -1 + random(2);
+void move() {    
+    pos_t newPos;
+    do {
+        newPos = randomShift();
+        newPos.x += responders[id].x
+        newPos.y += responders[id].y
+    } while (isOccupied(newPos));
 
-    while (isOccupied(pos_x + x, pos_y + y) {
-        x = -1 + random(2);
-        y = -1 + random(2);
-    }
-
-    pos_x = pos_x + x;
-    pos_y = pos_y + y;
+    responders[id] = newPos;
     t_resp = 0;
 }
 </declaration>
@@ -105,58 +118,63 @@ void move() {
 			<name x="-1088" y="-552">Deciding</name>
 			<committed/>
 		</location>
-		<location id="id1" x="-773" y="-782">
-			<name x="-748" y="-808">Helping</name>
-			<label kind="invariant" x="-748" y="-791">t_resp &lt;= T_fr</label>
+		<location id="id1" x="-773" y="-841">
+			<name x="-748" y="-867">Helping</name>
+			<label kind="invariant" x="-748" y="-850">t_resp &lt;= T_fr</label>
 		</location>
 		<location id="id2" x="-773" y="-331">
 			<name x="-748" y="-348">Reaching</name>
-			<label kind="invariant" x="-748" y="-331">t_resp &lt; dist</label>
+			<label kind="invariant" x="-748" y="-331">t_resp &lt;= distance(responders[id], victimPos[id])</label>
 		</location>
 		<location id="id3" x="-1513" y="-552">
 			<name x="-1581" y="-569">Moving</name>
 			<label kind="invariant" x="-1624" y="-552">t_resp &lt;= 1</label>
 		</location>
 		<location id="id4" x="-1105" y="-331">
-			<name x="-1164" y="-306">Waiting for survivor</name>
+			<name x="-1292" y="-340">Waiting for survivor</name>
 		</location>
 		<init ref="id0"/>
 		<transition id="id5">
 			<source ref="id4"/>
 			<target ref="id2"/>
+			<label kind="synchronisation" x="-1003" y="-323">goToVictim[id]?</label>
+			<label kind="assignment" x="-986" y="-297">t_resp = 0</label>
 		</transition>
 		<transition id="id6">
 			<source ref="id0"/>
 			<target ref="id4"/>
-			<label kind="synchronisation" x="-1096" y="-459">waitForSurvivor[id]?</label>
+			<label kind="synchronisation" x="-1096" y="-450">waitForSurvivor[id]?</label>
 		</transition>
 		<transition id="id7">
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-1292" y="-816">distance(pos, getClosestPos(VICTIM)) &lt;= 1</label>
-			<nail x="-1105" y="-782"/>
+			<label kind="guard" x="-1292" y="-875">distance(pos, getClosestPos(VICTIM)) &lt;= 1</label>
+			<nail x="-1105" y="-841"/>
 		</transition>
 		<transition id="id8">
 			<source ref="id0"/>
 			<target ref="id3"/>
-			<label kind="guard" x="-1462" y="-578">distance(pos, getClosestPos(VICTIM)) &gt; 1</label>
+			<label kind="guard" x="-1462" y="-603">distance(pos, getClosestPos(VICTIM)) &gt; 1</label>
+			<label kind="assignment" x="-1360" y="-578">t_resp = 0</label>
 		</transition>
 		<transition id="id9">
 			<source ref="id2"/>
 			<target ref="id1"/>
-			<label kind="assignment" x="-901" y="-552">reach(x, y)</label>
+			<label kind="guard" x="-773" y="-590">t_resp &gt;= distance(responders[id], victimPos[id])</label>
+			<label kind="assignment" x="-765" y="-561">t_resp = 0 &amp;&amp; responders[id] = victimPos[id]</label>
 		</transition>
 		<transition id="id10">
 			<source ref="id3"/>
 			<target ref="id0"/>
-			<label kind="assignment" x="-1326" y="-484">move()</label>
+			<label kind="guard" x="-1343" y="-484">t_resp &gt;= 1</label>
+			<label kind="assignment" x="-1326" y="-459">move()</label>
 			<nail x="-1513" y="-433"/>
 		</transition>
 		<transition id="id11">
 			<source ref="id1"/>
 			<target ref="id0"/>
-			<label kind="guard" x="-994" y="-654">t_resp &gt;= T_fr</label>
-			<label kind="assignment" x="-986" y="-629">t_resp := 0</label>
+			<label kind="guard" x="-1037" y="-739">t_resp &gt;= T_fr</label>
+			<label kind="assignment" x="-1028" y="-714">t_resp = 0 &amp;&amp; responders[id] = victimPos[id]</label>
 		</transition>
 	</template>
 	<template>
@@ -168,26 +186,24 @@ clock c;
 int id;
 pos_t dir;
 
-process Drone(int assignedId){
-    // Automaton definition
-    dist_p = 0;
-    t_resp = 0;
+process Drone(int assignedId, int assignedX, int assignedY){
+    c = 0;
     id = assignedId;
-    drones[id].x = Nv;
-    drones[id].y = Nv;
+    drones[id].x = assignedX;
+    drones[id].y = assignedY;
 }
 
 void patrol() {
-    if (drones[id].x + dir.x &amp;lt;= Nv - 1 || drones[id].x + dir.x &amp;gt;= N - Nv) &amp;amp;&amp;amp; //hit both bounds
-       (drones[id].y + ydir &amp;lt;= Nv - 1 || drones[id].y + ydir &amp;gt;= M - Nv) {  //flip directions and restart
+    if (drones[id].x + dir.x &lt;= Nv - 1 || drones[id].x + dir.x &gt;= N - Nv) &amp;&amp; //hit both bounds
+       (drones[id].y + ydir &lt;= Nv - 1 || drones[id].y + ydir &gt;= M - Nv) {  //flip directions and restart
         dir.x = -dir.x;
         dir.y = -dir.y;
-        if( !(drones[id].x + dir.x &amp;lt;= Nv - 1 || drones[id].x + dir.x &amp;gt;= N - Nv)){ //if can move x do it
+        if(drones[id].x + dir.x &gt; Nv - 1 &amp;&amp; drones[id].x + dir.x &lt; N - Nv){ //if can move x do it
             drones[id].x += dir.x;
         }
         //else stand still
     }
-    else if (drones[id].x + dir.x &amp;lt; Nv - 1 &amp;amp;&amp;amp; drones[id].x + dir.x &amp;gt; N - Nv) { //if in bound move along x
+    else if (drones[id].x + dir.x &gt; Nv - 1 &amp;&amp; drones[id].x + dir.x &lt; N - Nv) { //if in bound move along x
         drones[id].x += dir.x;
     }
     else { // move y until new track
@@ -232,7 +248,8 @@ bool survivorWillHelp() {
 			<source ref="id14"/>
 			<target ref="id12"/>
 			<label kind="guard" x="289" y="51">!survivorWillHelp()</label>
-			<label kind="synchronisation" x="289" y="85">callFirstResponder[getClosest(SURVIVOR))]!</label>
+			<label kind="synchronisation" x="289" y="85">callFirstResponder[getClosest(SURVIVOR))]! &amp;&amp;
+waitForSurvivor[getClosest(FIRST_RESPONDER)]!</label>
 			<nail x="280" y="204"/>
 			<nail x="280" y="-17"/>
 		</transition>
@@ -256,6 +273,123 @@ bool survivorWillHelp() {
 			<target ref="id13"/>
 			<label kind="guard" x="-144" y="-204">!survivorNear()</label>
 			<nail x="-136" y="-178"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Survivor</name>
+		<parameter>distance survHelpingTime respHelpingTime</parameter>
+		<declaration>// Place local declarations here.
+clock t;
+int id;
+
+process Survivor(id_resp assignedId, int assignedX, int assignedY){
+    t = 0;
+    id = assignedId;
+    survivors[id].x = assignedX;
+    survivors[id].y = assignedY;
+}
+
+void move() {    
+    pos_t newPos;
+    do {
+        newPos = randomShift();
+        newPos.x += responders[id].x
+        newPos.y += responders[id].y
+    } while (isOccupied(newPos));
+
+    survivors[id] = newPos;
+    t = 0;
+}</declaration>
+		<location id="id20" x="-170" y="119">
+			<name x="-263" y="110">Deciding</name>
+			<committed/>
+		</location>
+		<location id="id21" x="408" y="348">
+			<name x="433" y="340">Moving</name>
+			<label kind="invariant" x="441" y="365">t&lt;=1</label>
+		</location>
+		<location id="id22" x="977" y="119">
+			<name x="1011" y="110">Safe</name>
+		</location>
+		<location id="id23" x="620" y="119">
+			<name x="594" y="85">Helping</name>
+			<label kind="invariant" x="586" y="59">t &lt;= T_zr</label>
+		</location>
+		<location id="id24" x="197" y="119">
+			<name x="136" y="85">Reaching alone</name>
+			<label kind="invariant" x="-8" y="59">t &lt;= distance(survivors[id], getClosestPos(VICTIM))</label>
+		</location>
+		<location id="id25" x="-170" y="-76">
+			<name x="-289" y="-85">Reaching FR</name>
+			<label kind="invariant" x="-450" y="-119">t &lt;= distance(survivors[id], getClosestPos(FIRST_RESPONDER))</label>
+		</location>
+		<location id="id26" x="977" y="-76">
+			<name x="1003" y="-85">Helping with FR</name>
+			<label kind="invariant" x="1020" y="-110">t &lt;= T_fr</label>
+		</location>
+		<location id="id27" x="408" y="-76">
+			<name x="349" y="-110">Reaching victim</name>
+			<label kind="invariant" x="221" y="-136">t &lt;= distance(survivors[id], getClosestPos(VICTIM))</label>
+		</location>
+		<init ref="id20"/>
+		<transition id="id28">
+			<source ref="id27"/>
+			<target ref="id26"/>
+			<label kind="guard" x="501" y="-68">t &gt;= distance(survivors[id], getClosestPos(VICTIM))</label>
+			<label kind="assignment" x="527" y="-42">t = 0 &amp;&amp; survivors[id]=getClosestPos(VICTIM)</label>
+		</transition>
+		<transition id="id29">
+			<source ref="id25"/>
+			<target ref="id27"/>
+			<label kind="guard" x="-119" y="-68">t &gt;= distance(survivors[id], getClosestPos(FIRST_RESPONDER))</label>
+			<label kind="synchronisation" x="-68" y="-17">goToVictim[getClosest(FIRST_RESPONDER)]!</label>
+			<label kind="assignment" x="-119" y="-42">t = 0 &amp;&amp; survivors[id] = getClosestPos(FIRST_RESPONDER)</label>
+			<nail x="391" y="-76"/>
+		</transition>
+		<transition id="id30">
+			<source ref="id26"/>
+			<target ref="id22"/>
+			<label kind="guard" x="986" y="8">t &gt;= T_fr</label>
+		</transition>
+		<transition id="id31">
+			<source ref="id20"/>
+			<target ref="id25"/>
+			<label kind="synchronisation" x="-365" y="17">callFirstResponder[id]?</label>
+		</transition>
+		<transition id="id32">
+			<source ref="id24"/>
+			<target ref="id23"/>
+			<label kind="guard" x="204" y="136">t &gt;= distance(survivors[id], getClosestPos(VICTIM))</label>
+			<label kind="assignment" x="391" y="161">t = 0</label>
+		</transition>
+		<transition id="id33">
+			<source ref="id20"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="-42" y="127">rescue[id]?</label>
+		</transition>
+		<transition id="id34">
+			<source ref="id23"/>
+			<target ref="id22"/>
+			<label kind="guard" x="756" y="127">t &gt;= T_zr</label>
+		</transition>
+		<transition id="id35">
+			<source ref="id21"/>
+			<target ref="id20"/>
+			<label kind="guard" x="42" y="238">t&gt;=1 &amp;&amp; !nearExit()</label>
+			<nail x="119" y="306"/>
+			<nail x="-51" y="212"/>
+		</transition>
+		<transition id="id36">
+			<source ref="id21"/>
+			<target ref="id22"/>
+			<label kind="guard" x="705" y="238">nearExit()</label>
+		</transition>
+		<transition id="id37">
+			<source ref="id20"/>
+			<target ref="id21"/>
+			<label kind="assignment" x="-68" y="314">t=0 &amp;&amp; move()</label>
+			<nail x="-85" y="246"/>
+			<nail x="102" y="348"/>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
