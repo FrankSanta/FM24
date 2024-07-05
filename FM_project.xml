@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
 <nta>
-	<declaration>// Place global declarations here.
-
-//room size
+	<declaration>//room size
 const int N = 20;
 const int M = 10;
-const int N_resp = 2;     // numer of first responders
 const int T_fr = 5;       // assistance time of a first responder
 const int T_zr = 7;       // assistance time of a first responder
 const int Nv = 3;
 const int MAX = 10000;
 
-int map[N][M];
-
 typedef struct {
     int x;
     int y;
 } pos_t;
+typedef struct {
+    int min_x;
+    int min_y;
+    int max_x;
+    int max_y;
+} bounds_t;
 
 // Entity type
 const int SURVIVOR = 0;
@@ -30,18 +31,28 @@ const int FREE = 0;
 const int FIRE = 1;
 const int EXIT = 2;
 
-int entities[4] = {5, 3, 4, 2};
-pos_t survivors[entities[SURVIVOR]];
-pos_t victims[entities[VICTIM]];
-pos_t responders[entities[FIRST_RESPONDER]];
-pos_t drones[entities[DRONE]];
+// Entity amount
+const int SURVIVORS_QTY = 5;
+const int VICTIMS_QTY = 3;
+const int FIRST_RESPONDERS_QTY = 4;
+const int DRONES_QTY = 2;
+typedef int[0,SURVIVORS_QTY-1] id_s_t;
+typedef int[0,VICTIMS_QTY-1] id_v_t;
+typedef int[0,FIRST_RESPONDERS_QTY-1] id_f_t;
+typedef int[0,DRONES_QTY-1] id_d_t;
 
-typedef pos_t pos_arr_t[4];
-pos_arr_t positions = {survivors, victims, responders, drones};
+// Entity positions allocation
+int entities[4] = {SURVIVORS_QTY, VICTIMS_QTY, FIRST_RESPONDERS_QTY, DRONES_QTY};
+pos_t survivors[SURVIVORS_QTY];
+pos_t victims[VICTIMS_QTY];
+pos_t responders[FIRST_RESPONDERS_QTY];
+pos_t drones[DRONES_QTY];
+bounds_t bounds[DRONES_QTY];
+int map[N][M];
 
 // Drone -&amp;gt; Civilian events
-urgent chan rescue[entities[SURVIVOR]], callFirstResponder[entities[SURVIVOR]], waitForSurvivor[entities[FIRST_RESPONDER]], goToVictim[entities[FIRST_RESPONDER]];
-pos_t victimPos[entities[FIRST_RESPONDER]-1];
+broadcast chan rescue[SURVIVORS_QTY], callFirstResponder[SURVIVORS_QTY], waitForSurvivor[FIRST_RESPONDERS_QTY], goToVictim[FIRST_RESPONDERS_QTY];
+pos_t victimPos[FIRST_RESPONDERS_QTY];
 
 // Manhattan distance since motion is on the 4 cardinal directions
 int distance(pos_t pos1, pos_t pos2){
@@ -62,11 +73,40 @@ int utilGetClosest(int type, pos_t pos) {
     int closestDist = MAX;
     int temp;
     int k;
-    for(k=0; k&lt;entities[type]; k++) {
-        temp = distance(pos, positions[type][k]);
-        if(temp &lt; closestDist){
-            closest = k;
-            closestDist = temp;      
+    if (type==SURVIVOR) {
+        for(k=0; k&lt;entities[type]; k++) {
+            temp = distance(pos, survivors[k]);
+            if(temp &lt; closestDist){
+                closest = k;
+                closestDist = temp;      
+            }
+        }
+    }
+    if (type==VICTIM) {
+        for(k=0; k&lt;entities[type]; k++) {
+            temp = distance(pos, victims[k]);
+            if(temp &lt; closestDist){
+                closest = k;
+                closestDist = temp;      
+            }
+        }
+    }
+    if (type==FIRST_RESPONDER) {
+        for(k=0; k&lt;entities[type]; k++) {
+            temp = distance(pos, responders[k]);
+            if(temp &lt; closestDist){
+                closest = k;
+                closestDist = temp;      
+            }
+        }
+    }
+    if (type==DRONE) {
+        for(k=0; k&lt;entities[type]; k++) {
+            temp = distance(pos, drones[k]);
+            if(temp &lt; closestDist){
+                closest = k;
+                closestDist = temp;      
+            }
         }
     }
     return closest;
@@ -74,11 +114,20 @@ int utilGetClosest(int type, pos_t pos) {
 
 // Returns the pos_t of the closest entity
 pos_t utilGetClosestPos(int type, pos_t pos) {
-    return positions[type][utilGetClosest(type, pos)];
+    if (type==SURVIVOR) {
+        return survivors[utilGetClosest(type, pos)];
+    }
+    if (type==VICTIM) {
+        return victims[utilGetClosest(type, pos)];
+    }
+    if (type==FIRST_RESPONDER) {
+        return responders[utilGetClosest(type, pos)];
+    }
+    return drones[utilGetClosest(type, pos)];
 }
 
 pos_t randomShift() {
-    int choice = random(4);
+    double choice = random(4);
     pos_t toRet;
     if (choice == 0) {
         toRet.x = 0;
@@ -90,11 +139,11 @@ pos_t randomShift() {
     }
     if (choice == 2) {
         toRet.x = 1;
-        toRet.y = 1;
+        toRet.y = 0;
     }
     if (choice == 3) {
-        toRet.x = 1;
-        toRet.y = -1;
+        toRet.x = -1;
+        toRet.y = 0;
     }
     return toRet;
 }
@@ -117,30 +166,48 @@ bool isOccupied(pos_t p) {
         }
     }
     return false;
+}
+
+bool tileIsNearFire(pos_t p) {
+    return map[p.x][p.y+1] != FIRE  &amp;&amp;
+        map[p.x][p.y-1] != FIRE  &amp;&amp;
+        map[p.x+1][p.y] != FIRE  &amp;&amp;
+        map[p.x-1][p.y] != FIRE;
 }</declaration>
 	<template>
 		<name x="5" y="5">Responder</name>
-		<parameter>const id_resp id</parameter>
+		<parameter>const id_f_t id</parameter>
 		<declaration>// Place local declarations here.
 clock t_resp;
-int id;
 
+/*
 process Responder(int assignedId, int assignedX, int assignedY){
     t_resp = 0;
     id = assignedId;
     responders[id].x = assignedX;
     responders[id].y = assignedY;
 }
+*/
 
 void move() {    
     pos_t newPos;
     do {
         newPos = randomShift();
-        newPos.x += responders[id].x
-        newPos.y += responders[id].y
+        newPos.x += responders[id].x;
+        newPos.y += responders[id].y;
     } while (isOccupied(newPos));
 
     responders[id] = newPos;
+    t_resp = 0;
+}
+
+void doneHelping(){
+    responders[id] = victimPos[id];
+    t_resp = 0;
+}
+
+void doneReaching() {
+    responders[id] = victimPos[id];
     t_resp = 0;
 }
 
@@ -171,7 +238,7 @@ pos_t getClosestPos(int type) {
 			<label kind="invariant" x="-1624" y="-552">t_resp &lt;= 1</label>
 		</location>
 		<location id="id4" x="-1105" y="-331">
-			<name x="-1292" y="-340">Waiting for survivor</name>
+			<name x="-1292" y="-340">Waiting_for_survivor</name>
 		</location>
 		<init ref="id0"/>
 		<transition id="id5">
@@ -188,20 +255,20 @@ pos_t getClosestPos(int type) {
 		<transition id="id7">
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-1292" y="-875">distance(pos, getClosestPos(VICTIM)) &lt;= 1</label>
+			<label kind="guard" x="-1317" y="-867">distance(responders[id], getClosestPos(VICTIM)) &lt;= 1</label>
 			<nail x="-1105" y="-841"/>
 		</transition>
 		<transition id="id8">
 			<source ref="id0"/>
 			<target ref="id3"/>
-			<label kind="guard" x="-1462" y="-603">distance(pos, getClosestPos(VICTIM)) &gt; 1</label>
+			<label kind="guard" x="-1496" y="-603">distance(responders[id], getClosestPos(VICTIM)) &gt; 1</label>
 			<label kind="assignment" x="-1360" y="-578">t_resp = 0</label>
 		</transition>
 		<transition id="id9">
 			<source ref="id2"/>
 			<target ref="id1"/>
 			<label kind="guard" x="-773" y="-590">t_resp &gt;= distance(responders[id], victimPos[id])</label>
-			<label kind="assignment" x="-765" y="-561">t_resp = 0 &amp;&amp; responders[id] = victimPos[id]</label>
+			<label kind="assignment" x="-765" y="-561">doneReaching()</label>
 		</transition>
 		<transition id="id10">
 			<source ref="id3"/>
@@ -214,39 +281,24 @@ pos_t getClosestPos(int type) {
 			<source ref="id1"/>
 			<target ref="id0"/>
 			<label kind="guard" x="-1037" y="-739">t_resp &gt;= T_fr</label>
-			<label kind="assignment" x="-1028" y="-714">t_resp = 0 &amp;&amp; responders[id] = victimPos[id]</label>
+			<label kind="assignment" x="-1037" y="-714">doneHelping()</label>
 		</transition>
 	</template>
 	<template>
 		<name>Drone</name>
+		<parameter>const id_d_t id</parameter>
 		<declaration>// Place local declarations here.
 
-clock c; 
-
-int id;
-pos_t dir;
-int min_x;
-int max_x;
-int min_y;
-int max_y;
-
-
-process Drone(int assignedId, int assignedX, int assignedY, int assigned_min_x, int assigned_max_x, int assigned_min_y, int assigned_max_y){
-    c = 0;
-    id = assignedId;
-    drones[id].x = assignedX;
-    drones[id].y = assignedY;
-
-    // INCLUSIEVE bounds
-    min_x = assigned_min_x;
-    max_x = assigned_max_x;
-    min_y = assigned_min_y;
-    max_y = assigned_max_y;
-}
+clock t; 
+pos_t dir = {1, 0};
 
 void patrol() {
-    if (drones[id].x + dir.x &lt; min_x || drones[id].x + dir.x &gt; max_x) &amp;&amp; //hit both bounds
-       (drones[id].y + ydir &lt; min_y || drones[id].y + ydir &gt; max_y) {  //flip directions and restart
+    int min_x = bounds[id].min_x;
+    int max_x = bounds[id].max_x;
+    int min_y = bounds[id].min_y;
+    int max_y = bounds[id].max_y;
+    if ((drones[id].x + dir.x &lt; min_x || drones[id].x + dir.x &gt; max_x) &amp;&amp; //hit both bounds
+       (drones[id].y + dir.y &lt; min_y || drones[id].y + dir.y &gt; max_y)) {  //flip directions and restart
         dir.x = -dir.x;
         dir.y = -dir.y;
         if(drones[id].x + dir.x &gt; min_x &amp;&amp; drones[id].x + dir.x &lt; max_x){ //if can move x do it
@@ -265,18 +317,6 @@ void patrol() {
     }
 }
 
-bool survivorNear() {
-    if ( distance(pos, getClosestPos(SURVIVOR) &gt; Nv || distance(pos, getClosestPos(VICTIM) &gt; Nv  )
-        return false;
-    return true
-}
-
-bool survivorWillHelp() {
-    if ( distance(getClosestPos(SURVIVOR), getClosestPos(VICTIM)) &lt; distance(getClosestPos(SURVIVOR), getClosestPos(FIRST_RESPONDER)) + distance(getClosestPos(FIRST_RESPONDER), getClosestPos(VICTIM)) )
-        return true;
-    return false;
-}
-
 // Returns the ID of the closest entity, using the util function
 int getClosest(int type) {
     return utilGetClosest(type, drones[id]);
@@ -285,77 +325,88 @@ int getClosest(int type) {
 // Returns the pos_t of the closest entity, using the util function
 pos_t getClosestPos(int type) {
     return utilGetClosestPos(type, drones[id]);
-}</declaration>
-		<location id="id12" x="-59" y="-68">
-			<name x="-93" y="-110">Deciding</name>
+}
+
+bool survivorNear() {
+    if ( distance(drones[id], getClosestPos(SURVIVOR)) &gt; Nv || distance(drones[id], getClosestPos(VICTIM)) &gt; Nv  ) {
+        return false;
+    }
+    return true;
+}
+
+bool survivorWillHelp() {
+    if ( distance(getClosestPos(SURVIVOR), getClosestPos(VICTIM)) &lt; distance(getClosestPos(SURVIVOR), getClosestPos(FIRST_RESPONDER)) + distance(getClosestPos(FIRST_RESPONDER), getClosestPos(VICTIM)) )
+        return true;
+    return false;
+}
+
+</declaration>
+		<location id="id12" x="-374" y="-34">
+			<name x="-408" y="-76">Deciding</name>
 			<committed/>
 		</location>
-		<location id="id13" x="-246" y="-195">
-			<name x="-256" y="-229">Moving</name>
-			<label kind="invariant" x="-256" y="-178">t&lt;=1</label>
+		<location id="id13" x="-59" y="-34">
+			<name x="-85" y="-76">Moving</name>
+			<label kind="invariant" x="-76" y="-102">t&lt;=1</label>
 		</location>
 		<location id="id14" x="-59" y="314">
 			<name x="-110" y="348">Communicating</name>
 			<committed/>
 		</location>
+		<location id="id15" x="348" y="-34">
+			<committed/>
+		</location>
 		<init ref="id12"/>
-		<transition id="id15">
-			<source ref="id14"/>
-			<target ref="id12"/>
-			<label kind="guard" x="-51" y="59">survivorWillHelp()</label>
-			<label kind="synchronisation" x="-51" y="93">rescue[getClosest(SURVIVOR)]!</label>
-		</transition>
 		<transition id="id16">
-			<source ref="id14"/>
-			<target ref="id12"/>
-			<label kind="guard" x="289" y="51">!survivorWillHelp()</label>
-			<label kind="synchronisation" x="289" y="85">callFirstResponder[getClosest(SURVIVOR))]! &amp;&amp;
-waitForSurvivor[getClosest(FIRST_RESPONDER)]!</label>
-			<nail x="280" y="204"/>
-			<nail x="280" y="-17"/>
+			<source ref="id15"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="0" y="-76">waitForSurvivor[getClosest(FIRST_RESPONDER)]!</label>
 		</transition>
 		<transition id="id17">
-			<source ref="id12"/>
-			<target ref="id14"/>
-			<label kind="guard" x="-510" y="93">survivorNear()</label>
-			<nail x="-373" y="17"/>
-			<nail x="-374" y="246"/>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-51" y="59">!survivorWillHelp()</label>
+			<label kind="synchronisation" x="-51" y="93">callFirstResponder[getClosest(SURVIVOR)]!</label>
 		</transition>
 		<transition id="id18">
-			<source ref="id13"/>
-			<target ref="id12"/>
-			<label kind="guard" x="-178" y="-85">t&gt;=1</label>
-			<label kind="assignment" x="-178" y="-59">t=0</label>
-			<nail x="-187" y="-102"/>
-			<nail x="-187" y="-102"/>
+			<source ref="id14"/>
+			<target ref="id15"/>
+			<label kind="guard" x="357" y="111">survivorWillHelp()</label>
+			<label kind="synchronisation" x="357" y="136">rescue[getClosest(SURVIVOR)]!</label>
+			<nail x="348" y="306"/>
 		</transition>
 		<transition id="id19">
 			<source ref="id12"/>
+			<target ref="id14"/>
+			<label kind="guard" x="-510" y="161">survivorNear()</label>
+			<nail x="-374" y="314"/>
+		</transition>
+		<transition id="id20">
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="guard" x="-238" y="8">t&gt;=1</label>
+			<label kind="assignment" x="-238" y="34">t=0</label>
+			<nail x="-221" y="0"/>
+		</transition>
+		<transition id="id21">
+			<source ref="id12"/>
 			<target ref="id13"/>
-			<label kind="guard" x="-144" y="-204">!survivorNear()</label>
-			<nail x="-136" y="-178"/>
+			<label kind="guard" x="-263" y="-85">!survivorNear()</label>
+			<nail x="-221" y="-59"/>
 		</transition>
 	</template>
 	<template>
 		<name x="5" y="5">Survivor</name>
-		<parameter>distance survHelpingTime respHelpingTime</parameter>
+		<parameter>const id_s_t id</parameter>
 		<declaration>// Place local declarations here.
 clock t;
-int id;
-
-process Survivor(int assignedId, int assignedX, int assignedY){
-    t = 0;
-    id = assignedId;
-    survivors[id].x = assignedX;
-    survivors[id].y = assignedY;
-}
 
 void move() {    
     pos_t newPos;
     do {
         newPos = randomShift();
-        newPos.x += responders[id].x
-        newPos.y += responders[id].y
+        newPos.x += responders[id].x;
+        newPos.y += responders[id].y;
     } while (isOccupied(newPos));
 
     survivors[id] = newPos;
@@ -370,105 +421,136 @@ int getClosest(int type) {
 // Returns the pos_t of the closest entity, using the util function
 pos_t getClosestPos(int type) {
     return utilGetClosestPos(type, survivors[id]);
+}
+
+bool nearExit() {
+    pos_t pos = survivors[id];
+    if (map[pos.x][pos.y+1] == EXIT) {
+        return true;
+    }
+    if (map[pos.x][pos.y-1] == EXIT) {
+        return true;
+    }
+    if (map[pos.x+1][pos.y] == EXIT) {
+        return true;
+    }
+    if (map[pos.x-1][pos.y] == EXIT) {
+        return true;
+    }
+    return false;
+}
+
+void doneReachingFR() {
+    survivors[id] = getClosestPos(FIRST_RESPONDER);
+    t = 0;
+}
+void doneReachingVictim() {
+    survivors[id]=getClosestPos(VICTIM);
+    t = 0;
+}
+void doneReachingAlone() {
+    survivors[id]=getClosestPos(VICTIM);
+    t = 0;
 }</declaration>
-		<location id="id20" x="-170" y="119">
+		<location id="id22" x="-170" y="119">
 			<name x="-263" y="110">Deciding</name>
 			<committed/>
 		</location>
-		<location id="id21" x="408" y="348">
+		<location id="id23" x="408" y="348">
 			<name x="433" y="340">Moving</name>
 			<label kind="invariant" x="441" y="365">t&lt;=1</label>
 		</location>
-		<location id="id22" x="977" y="119">
+		<location id="id24" x="977" y="119">
 			<name x="1011" y="110">Safe</name>
 		</location>
-		<location id="id23" x="620" y="119">
-			<name x="594" y="85">Helping</name>
-			<label kind="invariant" x="586" y="59">t &lt;= T_zr</label>
+		<location id="id25" x="646" y="119">
+			<name x="620" y="85">Helping</name>
+			<label kind="invariant" x="612" y="59">t &lt;= T_zr</label>
 		</location>
-		<location id="id24" x="197" y="119">
-			<name x="136" y="85">Reaching alone</name>
-			<label kind="invariant" x="-8" y="59">t &lt;= distance(survivors[id], getClosestPos(VICTIM))</label>
+		<location id="id26" x="170" y="119">
+			<name x="109" y="85">Reaching_alone</name>
+			<label kind="invariant" x="-35" y="59">t &lt;= distance(survivors[id], getClosestPos(VICTIM))</label>
 		</location>
-		<location id="id25" x="-170" y="-76">
-			<name x="-289" y="-85">Reaching FR</name>
+		<location id="id27" x="-170" y="-76">
+			<name x="-289" y="-85">Reaching_FR</name>
 			<label kind="invariant" x="-450" y="-119">t &lt;= distance(survivors[id], getClosestPos(FIRST_RESPONDER))</label>
 		</location>
-		<location id="id26" x="977" y="-76">
-			<name x="1003" y="-85">Helping with FR</name>
+		<location id="id28" x="977" y="-76">
+			<name x="1003" y="-85">Helping_with_FR</name>
 			<label kind="invariant" x="1020" y="-110">t &lt;= T_fr</label>
 		</location>
-		<location id="id27" x="408" y="-76">
-			<name x="349" y="-110">Reaching victim</name>
+		<location id="id29" x="408" y="-76">
+			<name x="349" y="-110">Reaching_victim</name>
 			<label kind="invariant" x="221" y="-136">t &lt;= distance(survivors[id], getClosestPos(VICTIM))</label>
 		</location>
-		<init ref="id20"/>
-		<transition id="id28">
-			<source ref="id27"/>
-			<target ref="id26"/>
-			<label kind="guard" x="501" y="-68">t &gt;= distance(survivors[id], getClosestPos(VICTIM))</label>
-			<label kind="assignment" x="527" y="-42">t = 0 &amp;&amp; survivors[id]=getClosestPos(VICTIM)</label>
-		</transition>
-		<transition id="id29">
-			<source ref="id25"/>
-			<target ref="id27"/>
-			<label kind="guard" x="-119" y="-68">t &gt;= distance(survivors[id], getClosestPos(FIRST_RESPONDER))</label>
-			<label kind="synchronisation" x="-68" y="-17">goToVictim[getClosest(FIRST_RESPONDER)]!</label>
-			<label kind="assignment" x="-119" y="-42">t = 0 &amp;&amp; survivors[id] = getClosestPos(FIRST_RESPONDER)</label>
-			<nail x="391" y="-76"/>
-		</transition>
+		<init ref="id22"/>
 		<transition id="id30">
-			<source ref="id26"/>
-			<target ref="id22"/>
-			<label kind="guard" x="986" y="8">t &gt;= T_fr</label>
+			<source ref="id29"/>
+			<target ref="id28"/>
+			<label kind="guard" x="501" y="-68">t &gt;= distance(survivors[id], getClosestPos(VICTIM))</label>
+			<label kind="assignment" x="612" y="-42">doneReachingVictim()</label>
 		</transition>
 		<transition id="id31">
-			<source ref="id20"/>
-			<target ref="id25"/>
-			<label kind="synchronisation" x="-365" y="17">callFirstResponder[id]?</label>
+			<source ref="id27"/>
+			<target ref="id29"/>
+			<label kind="guard" x="-119" y="-68">t &gt;= distance(survivors[id], getClosestPos(FIRST_RESPONDER))</label>
+			<label kind="synchronisation" x="-68" y="-17">goToVictim[getClosest(FIRST_RESPONDER)]!</label>
+			<label kind="assignment" x="42" y="-42">doneReachingFR()</label>
+			<nail x="391" y="-76"/>
 		</transition>
 		<transition id="id32">
-			<source ref="id24"/>
-			<target ref="id23"/>
-			<label kind="guard" x="204" y="136">t &gt;= distance(survivors[id], getClosestPos(VICTIM))</label>
-			<label kind="assignment" x="391" y="161">t = 0</label>
+			<source ref="id28"/>
+			<target ref="id24"/>
+			<label kind="guard" x="986" y="8">t &gt;= T_fr</label>
 		</transition>
 		<transition id="id33">
-			<source ref="id20"/>
-			<target ref="id24"/>
-			<label kind="synchronisation" x="-42" y="127">rescue[id]?</label>
+			<source ref="id22"/>
+			<target ref="id27"/>
+			<label kind="synchronisation" x="-365" y="17">callFirstResponder[id]?</label>
 		</transition>
 		<transition id="id34">
-			<source ref="id23"/>
-			<target ref="id22"/>
-			<label kind="guard" x="756" y="127">t &gt;= T_zr</label>
+			<source ref="id26"/>
+			<target ref="id25"/>
+			<label kind="guard" x="204" y="136">t &gt;= distance(survivors[id], getClosestPos(VICTIM))</label>
+			<label kind="assignment" x="323" y="161">doneReachingAlone()</label>
 		</transition>
 		<transition id="id35">
-			<source ref="id21"/>
-			<target ref="id20"/>
+			<source ref="id22"/>
+			<target ref="id26"/>
+			<label kind="synchronisation" x="-42" y="127">rescue[id]?</label>
+		</transition>
+		<transition id="id36">
+			<source ref="id25"/>
+			<target ref="id24"/>
+			<label kind="guard" x="756" y="127">t &gt;= T_zr</label>
+		</transition>
+		<transition id="id37">
+			<source ref="id23"/>
+			<target ref="id22"/>
 			<label kind="guard" x="42" y="238">t&gt;=1 &amp;&amp; !nearExit()</label>
+			<label kind="assignment" x="102" y="263">t=0</label>
 			<nail x="119" y="306"/>
 			<nail x="-51" y="212"/>
 		</transition>
-		<transition id="id36">
-			<source ref="id21"/>
-			<target ref="id22"/>
+		<transition id="id38">
+			<source ref="id23"/>
+			<target ref="id24"/>
 			<label kind="guard" x="705" y="238">nearExit()</label>
 		</transition>
-		<transition id="id37">
-			<source ref="id20"/>
-			<target ref="id21"/>
-			<label kind="assignment" x="-68" y="314">t=0 &amp;&amp; move()</label>
+		<transition id="id39">
+			<source ref="id22"/>
+			<target ref="id23"/>
+			<label kind="assignment" x="-34" y="306">move()</label>
 			<nail x="-85" y="246"/>
 			<nail x="102" y="348"/>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
+resp0 = Responder(0);
 resp1 = Responder(1);
-resp2 = Responder(2);
 
 // List one or more processes to be composed into a system.
-system resp1, resp2;
+system resp0, resp1;
 </system>
 	<queries>
 		<query>
