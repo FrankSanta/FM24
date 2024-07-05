@@ -185,30 +185,41 @@ clock c;
 
 int id;
 pos_t dir;
+int min_x;
+int max_x;
+int min_y;
+int max_y;
 
-process Drone(int assignedId, int assignedX, int assignedY){
+
+process Drone(int assignedId, int assignedX, int assignedY, int assigned_min_x, int assigned_max_x, int assigned_min_y, int assigned_max_y){
     c = 0;
     id = assignedId;
     drones[id].x = assignedX;
     drones[id].y = assignedY;
+
+    // INCLUSIEVE bounds
+    min_x = assigned_min_x;
+    max_x = assigned_max_x;
+    min_y = assigned_min_y;
+    max_y = assigned_max_y;
 }
 
 void patrol() {
-    if (drones[id].x + dir.x &lt;= Nv - 1 || drones[id].x + dir.x &gt;= N - Nv) &amp;&amp; //hit both bounds
-       (drones[id].y + ydir &lt;= Nv - 1 || drones[id].y + ydir &gt;= M - Nv) {  //flip directions and restart
+    if (drones[id].x + dir.x &lt; min_x || drones[id].x + dir.x &gt; max_x) &amp;&amp; //hit both bounds
+       (drones[id].y + ydir &lt; min_y || drones[id].y + ydir &gt; max_y) {  //flip directions and restart
         dir.x = -dir.x;
         dir.y = -dir.y;
-        if(drones[id].x + dir.x &gt; Nv - 1 &amp;&amp; drones[id].x + dir.x &lt; N - Nv){ //if can move x do it
+        if(drones[id].x + dir.x &gt; min_x &amp;&amp; drones[id].x + dir.x &lt; max_x){ //if can move x do it
             drones[id].x += dir.x;
         }
         //else stand still
     }
-    else if (drones[id].x + dir.x &gt; Nv - 1 &amp;&amp; drones[id].x + dir.x &lt; N - Nv) { //if in bound move along x
+    else if (drones[id].x + dir.x &gt; min_x &amp;&amp; drones[id].x + dir.x &lt; max_x) { //if in bound move along x
         drones[id].x += dir.x;
     }
     else { // move y until new track
         drones[id].y += dir.y;
-        if ((drones[id].y - Nv) % (2 * Nv + 1) == 0) { //on the last y-move flip x direction
+        if ((drones[id].y - min_y - Nv) % (2 * Nv + 1) == 0) { //on the last y-move flip x direction
             dir.x = -dir.x;
         }
     }
