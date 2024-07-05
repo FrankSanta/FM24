@@ -4,6 +4,7 @@
 	<declaration>const int T_fr = 5;       // assistance time of a first responder
 const int T_zr = 7;       // assistance time of a zero responder
 const int Nv = 3;         // drone visibility
+const int OUT_OF_MAP = INT16_MAX/4;
 
 typedef struct {
     int x;
@@ -314,8 +315,8 @@ pos_t getClosestPos(int type) {
 		<name>Victim</name>
 		<parameter>const id_v_t id</parameter>
 		<declaration>void exitMap() {
-    victims[id].x = INT16_MAX;
-    victims[id].y = INT16_MAX;
+    victims[id].x = OUT_OF_MAP;
+    victims[id].y = OUT_OF_MAP;
 }</declaration>
 		<location id="id12" x="-289" y="-8">
 			<name x="-299" y="-42">In_need</name>
@@ -491,8 +492,8 @@ void doneReachingAlone() {
     t = 0;
 }
 void exitMap() {
-    survivors[id].x = INT16_MAX;
-    survivors[id].y = INT16_MAX;
+    survivors[id].x = OUT_OF_MAP;
+    survivors[id].y = OUT_OF_MAP;
 }</declaration>
 		<location id="id25" x="-170" y="119">
 			<name x="-263" y="110">Deciding</name>
