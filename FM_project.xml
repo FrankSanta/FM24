@@ -10,43 +10,58 @@ const int N_resp = 2;     // numer of first responders
 const int T_fr = 5;       // assistance time of a first responder
 const int T_zr = 7;       // assistance time of a first responder
 const int Nv = 3;
-// const int N = ;
+const int MAX = 10000;
 
-const int SURVIVOR = 0
-const int VICTIM = 1
-const int FIRST_RESPONDER = 2
-const int DRONE = 3
+int map[N][M];
 
-int entities[4] = {5, 3, 4, 2}
-typedef pos_t[0, entities[SURVIVOR]-1] survivors;
-typedef pos_t[0, entities[VICTIM]-1] victims;
-typedef pos_t[0, entities[FIRST_RESPONDER]-1] responders;
-typedef pos_t[0, entities[DRONE-1] drones;
+
+// Entity type
+const int SURVIVOR = 0;
+const int VICTIM = 1;
+const int FIRST_RESPONDER = 2;
+const int DRONE = 3;
+
+// Tile type in the map
+const int FREE = 0;
+const int FIRE = 1;
+const int EXIT = 2;
+
+int entities[4] = {5, 3, 4, 2};
+pos_t survivors[4];
+pos_t victims[0, entities[VICTIM]-1];
+pos_t responders[0, entities[FIRST_RESPONDER]-1];
+pos_t drones[0, entities[DRONE]-1];
+
+typedef pos_t[] pos_arr_t;
+pos_arr_t positions[4] = {survivors, victims, responders, drones};
 
 // Drone -&amp;gt; Civilian events
 urgent chan rescue[entities[SURVIVOR]], callFirstResponder[entities[SURVIVOR]], waitForSurvivor[entities[FIRST_RESPONDER]], goToVictim[entities[FIRST_RESPONDER]];
-pos_t[0, entities[FIRST_RESPONDER]-1] victimPos;
- 
+pos_t victimPos;
 
 typedef struct {
     int x;
     int y;
 } pos_t;
 
-
-const int SURVIVOR = 0
-const int VICTIM = 1
-const int FIRST_RESPONDER = 2
-const int DRONE = 3
-
 // Returns the ID of the closest entity
-int getClosest(int type) {
-    
+int utilGetClosest(int type, pos_t pos) {
+    int closest = MAX;
+    int closestDist = MAX;
+    int temp;
+    for(int k=0; k&lt;entities[type]; k++) {
+        temp = distance(pos, positions[type][k]);
+        if(temp &lt; closestDist){
+            closest = k;
+            closestDist = temp;      
+        }
+    }
+    return closest;
 }
 
 // Returns the pos_t of the closest entity
-pos_t getClosestPos(int type) {
-    
+pos_t utilGetClosestPos(int type, pos_t pos) {
+    return positions[type][utilGetClosest(int type, pos_t pos)];
 }
 
 // Manhattan distance since motion is on the 4 cardinal directions
@@ -95,7 +110,7 @@ post_t randomShift(){
 clock t_resp;
 int id;
 
-process Responder(id_resp assignedId, int assignedX, int assignedY){
+process Responder(int assignedId, int assignedX, int assignedY){
     t_resp = 0;
     id = assignedId;
     responders[id].x = assignedX;
@@ -112,6 +127,16 @@ void move() {
 
     responders[id] = newPos;
     t_resp = 0;
+}
+
+// Returns the ID of the closest entity, using the util function
+int getClosest(int type) {
+    return utilGetClosest(type, responders[id]);
+}
+
+// Returns the pos_t of the closest entity, using the util function
+pos_t getClosestPos(int type) {
+    return utilGetClosestPos(type, responders[id]);
 }
 </declaration>
 		<location id="id0" x="-1105" y="-552">
@@ -187,7 +212,7 @@ int id;
 pos_t dir;
 
 process Drone(int assignedId, int assignedX, int assignedY){
-    c = 0;
+    c=0;
     id = assignedId;
     drones[id].x = assignedX;
     drones[id].y = assignedY;
@@ -224,6 +249,16 @@ bool survivorWillHelp() {
     if ( distance(getClosestPos(SURVIVOR), getClosestPos(VICTIM)) &lt; distance(getClosestPos(SURVIVOR), getClosestPos(FIRST_RESPONDER)) + distance(getClosestPos(FIRST_RESPONDER), getClosestPos(VICTIM)) )
         return true;
     return false;
+}
+
+// Returns the ID of the closest entity, using the util function
+int getClosest(int type) {
+    return utilGetClosest(type, drones[id]);
+}
+
+// Returns the pos_t of the closest entity, using the util function
+pos_t getClosestPos(int type) {
+    return utilGetClosestPos(type, drones[id]);
 }</declaration>
 		<location id="id12" x="-59" y="-68">
 			<name x="-93" y="-110">Deciding</name>
@@ -282,7 +317,7 @@ waitForSurvivor[getClosest(FIRST_RESPONDER)]!</label>
 clock t;
 int id;
 
-process Survivor(id_resp assignedId, int assignedX, int assignedY){
+process Survivor(int assignedId, int assignedX, int assignedY){
     t = 0;
     id = assignedId;
     survivors[id].x = assignedX;
@@ -299,6 +334,16 @@ void move() {
 
     survivors[id] = newPos;
     t = 0;
+}
+
+// Returns the ID of the closest entity, using the util function
+int getClosest(int type) {
+    return utilGetClosest(type, survivors[id]);
+}
+
+// Returns the pos_t of the closest entity, using the util function
+pos_t getClosestPos(int type) {
+    return utilGetClosestPos(type, survivors[id]);
 }</declaration>
 		<location id="id20" x="-170" y="119">
 			<name x="-263" y="110">Deciding</name>
