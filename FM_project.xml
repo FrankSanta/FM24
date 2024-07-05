@@ -14,6 +14,10 @@ const int MAX = 10000;
 
 int map[N][M];
 
+typedef struct {
+    int x;
+    int y;
+} pos_t;
 
 // Entity type
 const int SURVIVOR = 0;
@@ -27,29 +31,38 @@ const int FIRE = 1;
 const int EXIT = 2;
 
 int entities[4] = {5, 3, 4, 2};
-pos_t survivors[4];
-pos_t victims[0, entities[VICTIM]-1];
-pos_t responders[0, entities[FIRST_RESPONDER]-1];
-pos_t drones[0, entities[DRONE]-1];
+pos_t survivors[entities[SURVIVOR]];
+pos_t victims[entities[VICTIM]];
+pos_t responders[entities[FIRST_RESPONDER]];
+pos_t drones[entities[DRONE]];
 
-typedef pos_t[] pos_arr_t;
-pos_arr_t positions[4] = {survivors, victims, responders, drones};
+typedef pos_t pos_arr_t[4];
+pos_arr_t positions = {survivors, victims, responders, drones};
 
 // Drone -&amp;gt; Civilian events
 urgent chan rescue[entities[SURVIVOR]], callFirstResponder[entities[SURVIVOR]], waitForSurvivor[entities[FIRST_RESPONDER]], goToVictim[entities[FIRST_RESPONDER]];
-pos_t victimPos;
+pos_t victimPos[entities[FIRST_RESPONDER]-1];
 
-typedef struct {
-    int x;
-    int y;
-} pos_t;
+// Manhattan distance since motion is on the 4 cardinal directions
+int distance(pos_t pos1, pos_t pos2){
+    int dist_x = pos1.x-pos2.x;
+    int dist_y = pos1.y-pos2.y;
+    if(dist_x &lt; 0){
+        dist_x = -dist_x;
+    }
+    if(dist_y &lt; 0){
+        dist_y = -dist_y;
+    }
+    return dist_x+dist_y;
+}
 
 // Returns the ID of the closest entity
 int utilGetClosest(int type, pos_t pos) {
     int closest = MAX;
     int closestDist = MAX;
     int temp;
-    for(int k=0; k&lt;entities[type]; k++) {
+    int k;
+    for(k=0; k&lt;entities[type]; k++) {
         temp = distance(pos, positions[type][k]);
         if(temp &lt; closestDist){
             closest = k;
@@ -61,45 +74,47 @@ int utilGetClosest(int type, pos_t pos) {
 
 // Returns the pos_t of the closest entity
 pos_t utilGetClosestPos(int type, pos_t pos) {
-    return positions[type][utilGetClosest(int type, pos_t pos)];
+    return positions[type][utilGetClosest(type, pos)];
 }
 
-// Manhattan distance since motion is on the 4 cardinal directions
-int distance(pos_t pos1, pos_t pos2){
-    int dist_x = pos1.x-pos2.x;
-    int dist_y = pos1.y-pos2.y;
-    if(dist_x &amp;lt; 0){
-        dist_x = -dist_x;
+pos_t randomShift() {
+    int choice = random(4);
+    pos_t toRet;
+    if (choice == 0) {
+        toRet.x = 0;
+        toRet.y = 1;
     }
-    if(dist_y &amp;lt; 0){
-        dist_y = -dist_y;
+    if (choice == 1) {
+        toRet.x = 0;
+        toRet.y = -1;
     }
-    return dist_x+dist_y;
+    if (choice == 2) {
+        toRet.x = 1;
+        toRet.y = 1;
+    }
+    if (choice == 3) {
+        toRet.x = 1;
+        toRet.y = -1;
+    }
+    return toRet;
 }
 
-post_t randomShift(){
-    int choice = random(3);
-    if (choice == 0)
-        return (pos_t) {.x = 0, .y=1};
-    if (choice == 1)
-        return (pos_t) {.x = 0, .y=-1};
-    if (choice == 2)
-        return (pos_t) {.x = 1, .y=1};
-    return (pos_t) {.x = 1, .y=-1};
-}
-
-  bool isOccupied(pos_t p) {
-    for (int i = 0; i &lt; entities[SURVIVOR]; i++) {
+bool isOccupied(pos_t p) {
+    int i;
+    for (i = 0; i &lt; entities[SURVIVOR]; i++) {
         if (survivors[i].x == p.x &amp;&amp; survivors[i].y == p.y) {
             return true;
-      }
-    for (int i = 0; i &lt; entities[RESPONDER]; i++) {
+        }
+    }
+    for (i = 0; i &lt; entities[FIRST_RESPONDER]; i++) {
         if (responders[i].x == p.x &amp;&amp; responders[i].y == p.y) {
             return true;
+        }
     }
-    for (int i = 0; i &lt; entities[VICTIM]; i++) {
+    for (i = 0; i &lt; entities[VICTIM]; i++) {
         if (victims[i].x == p.x &amp;&amp; victims[i].y == p.y) {
             return true;
+        }
     }
     return false;
 }</declaration>
