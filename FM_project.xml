@@ -4,7 +4,7 @@
 	<declaration>clock globalTime;
 const int T_fr = 5;       // assistance time of a first responder
 const int T_zr = 7;       // assistance time of a zero responder
-const int T_v = 30;       // becoming-casualty time for victims
+const int T_v = 50;       // becoming-casualty time for victims
 
 // Entity type
 const int SURVIVOR = 0;
@@ -31,14 +31,14 @@ const int M = 20;   // map columns
 const int RAND_VEC_SIZE = 200;
 typedef int[0,N] coordx_t;
 typedef int[0,M] coordy_t;
-const int Nv = 2;   // drone visibility
+const int Nv = 3;   // drone visibility
 
 // Entity amounts
-const int SURVIVORS_QTY = 10;
-const int VICTIMS_QTY = 7;
-const int FIRST_RESPONDERS_QTY = 5;
+const int SURVIVORS_QTY = 8;
+const int VICTIMS_QTY = 5;
+const int FIRST_RESPONDERS_QTY = 8;
 const int DRONES_QTY = 4;
-int[0,10] entities[4] = {SURVIVORS_QTY, VICTIMS_QTY, FIRST_RESPONDERS_QTY, DRONES_QTY};
+int[0,8] entities[4] = {SURVIVORS_QTY, VICTIMS_QTY, FIRST_RESPONDERS_QTY, DRONES_QTY};
 
 // IDs
 typedef int[0,SURVIVORS_QTY-1] id_s_t;
@@ -52,7 +52,7 @@ bool victims_busy[VICTIMS_QTY];
 bool responders_busy[FIRST_RESPONDERS_QTY];
 
 // Pseudo_random_numbers
-int[0,3] pseudo_random_vector[RAND_VEC_SIZE] = {3, 3, 1, 3, 2, 1, 1, 0, 0, 3, 1, 0, 0, 2, 0, 0, 3, 3, 3, 2, 0, 2, 0, 0, 1, 1, 2, 0, 1, 0, 1, 2, 1, 0, 0, 3, 0, 1, 2, 2, 3, 0, 0, 3, 3, 1, 2, 2, 2, 0, 3, 3, 2, 1, 2, 1, 0, 0, 1, 0, 3, 1, 0, 2, 0, 3, 0, 3, 0, 3, 0, 3, 2, 1, 1, 3, 3, 1, 0, 3, 1, 0, 1, 1, 3, 2, 0, 3, 3, 2, 2, 2, 1, 2, 2, 1, 3, 0, 2, 1, 1, 0, 3, 0, 1, 1, 2, 3, 2, 0, 0, 1, 0, 0, 2, 3, 1, 1, 0, 1, 0, 2, 2, 0, 3, 3, 3, 2, 0, 3, 1, 0, 0, 3, 2, 1, 3, 2, 1, 3, 3, 3, 1, 2, 3, 1, 0, 2, 1, 1, 0, 3, 1, 2, 2, 2, 3, 1, 2, 2, 1, 3, 0, 3, 3, 2, 2, 1, 2, 0, 2, 3, 2, 3, 3, 2, 0, 0, 2, 1, 0, 1, 0, 3, 2, 2, 2, 1, 3, 0, 3, 3, 3, 2, 0, 3, 1, 2, 2, 1};
+int[0,3] pseudo_random_vector[RAND_VEC_SIZE] = {3, 3, 1, 3, 3, 0, 3, 0, 2, 3, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 3, 1, 0, 0, 3, 2, 3, 0, 0, 3, 1, 1, 1, 1, 3, 3, 0, 2, 1, 3, 0, 1, 0, 1, 0, 1, 2, 2, 1, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 2, 1, 0, 0, 2, 0, 2, 0, 2, 2, 0, 1, 1, 0, 0, 0, 0, 2, 2, 2, 3, 2, 2, 0, 1, 3, 2, 3, 3, 1, 2, 2, 2, 1, 1, 2, 0, 3, 0, 3, 2, 1, 0, 2, 2, 1, 1, 0, 3, 3, 1, 3, 0, 2, 0, 0, 2, 3, 0, 0, 2, 0, 0, 3, 3, 3, 1, 2, 0, 3, 1, 0, 1, 2, 0, 1, 1, 1, 0, 3, 3, 2, 1, 3, 1, 2, 2, 0, 0, 2, 0, 1, 1, 1, 3, 0, 2, 0, 0, 3, 2, 2, 1, 2, 3, 1, 1, 3, 3, 2, 0, 2, 0, 2, 3, 1, 2, 2, 0, 1, 1, 1, 0, 2, 3, 3, 3, 1, 3, 1, 3, 0, 1, 1, 2, 1, 3, 2, 1};
 
 typedef struct {
     coordx_t x;
@@ -68,38 +68,37 @@ typedef struct {
 } bounds_t;
 
 // Positions for survivors, victims and first responders
-pos_t survivors[SURVIVORS_QTY] = {{13,1}, {1,19}, {1,17}, {5,0}, {18,17}, {15,2}, {1,15}, {9,16}, {4,1}, {0,0}};
-pos_t victims[VICTIMS_QTY] = {{4,6}, {14,10}, {10,4}, {15,10}, {15,9}, {8,3}, {6,12}};
-pos_t responders[FIRST_RESPONDERS_QTY] = {{16,8}, {4,14}, {2,13}, {8,17}, {17,3}};
+pos_t survivors[SURVIVORS_QTY] = {{1,11}, {1,1}, {15,8}, {5,8}, {11,17}, {18,13}, {8,14}, {8,15}};
+pos_t victims[VICTIMS_QTY] = {{6,3}, {6,5}, {6,4}, {13,15}, {0,6}};
+pos_t responders[FIRST_RESPONDERS_QTY] = {{4,5}, {14,14}, {3,15}, {7,12}, {11,12}, {11,4}, {0,17}, {5,12}};
 
 // Positions and area bounds for drones
-pos_t drones[DRONES_QTY] = {{2,2}, {2,11}, {11,2}, {11,11}};
-bounds_t bounds[DRONES_QTY] = {{2 , 2, 7, 7}, {2, 11, 7, 17}, {11, 2, 17, 7}, {11, 11, 17, 17}};
+pos_t drones[DRONES_QTY] = {{3,3}, {3,12}, {12,3}, {12,12}};
+bounds_t bounds[DRONES_QTY] = {{3 , 3, 6, 6}, {3, 12, 6, 16}, {12, 3, 16, 6}, {12, 12, 16, 16}};
 
 int[0,2] map[N][M] = {
-  {0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,1,1,0,1,1,1,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,1,1,1,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {2,0,1,1,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,2},
-  {2,0,0,1,1,0,0,1,1,1,0,0,1,1,1,0,0,0,0,2},
-  {0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0},
-  {0,0,0,0,1,1,1,0,0,1,0,1,0,0,0,0,0,0,0,0},
-  {0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1},
+  {0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1},
+  {0,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {1,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {2,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,2},
+  {2,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,2},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0},
+  {0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0},
+  {0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0},
+  {0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1},
+  {0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1},
+  {0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1}
 };
 //######################################################
-
 // Channels
 broadcast chan rescue[SURVIVORS_QTY], callFirstResponder[SURVIVORS_QTY], waitForSurvivor[FIRST_RESPONDERS_QTY], goToVictim[FIRST_RESPONDERS_QTY], helping[VICTIMS_QTY], save[VICTIMS_QTY];
 id_v_t survToFRVictim[FIRST_RESPONDERS_QTY];
@@ -393,7 +392,7 @@ void setBusy() {
 			<label kind="invariant" x="-306" y="-68">globalTime &lt;= T_v</label>
 		</location>
 		<location id="id16" x="-246" y="93">
-			<name x="-221" y="85">Dinner_ready</name>
+			<name x="-221" y="85">Casualty</name>
 		</location>
 		<init ref="id13"/>
 		<transition id="id17">
@@ -429,26 +428,45 @@ void setBusy() {
 clock t; 
 pos_delta_t dir = {-1, -1};
 
+bool hit_x_bound(){
+    coordx_t min_x = bounds[id].min_x;
+    coordx_t max_x = bounds[id].max_x;
+    return (drones[id].x + dir.x &lt; min_x) || (drones[id].x + dir.x &gt; max_x);
+}
+
+bool hit_y_bound(){
+    coordy_t min_y = bounds[id].min_y;
+    coordy_t max_y = bounds[id].max_y;
+    return (drones[id].y + dir.y &lt; min_y) || (drones[id].y + dir.y &gt; max_y);
+}
+
+bool on_track(){
+    coordy_t min_y = bounds[id].min_y;
+    return (drones[id].y - min_y) % (2 * Nv + 1) == 0;
+}
+
 void patrol() {
-    int min_x = bounds[id].min_x;
-    int max_x = bounds[id].max_x;
-    int min_y = bounds[id].min_y;
-    int max_y = bounds[id].max_y;
-    if ((drones[id].x + dir.x &lt; min_x || drones[id].x + dir.x &gt; max_x) &amp;&amp; //hit both bounds
-       (drones[id].y + dir.y &lt; min_y || drones[id].y + dir.y &gt; max_y)) {  //flip directions and restart
+    coordx_t min_x = bounds[id].min_x;
+    coordx_t max_x = bounds[id].max_x;
+    coordy_t min_y = bounds[id].min_y;
+    coordy_t max_y = bounds[id].max_y;
+    if (hit_x_bound() &amp;&amp; hit_y_bound()){ //hit both bounds ==&gt; flip directions and restart
         dir.x = -dir.x;
         dir.y = -dir.y;
-        if(drones[id].x + dir.x &gt; min_x &amp;&amp; drones[id].x + dir.x &lt; max_x){ //if can move x do it
+        if(!hit_x_bound()) {//if can move x do it
             drones[id].x += dir.x;
+        }
+        else if(!hit_y_bound()) { //if can move y do it
+            drones[id].y += dir.y;
         }
         //else stand still
     }
-    else if (drones[id].x + dir.x &gt; min_x &amp;&amp; drones[id].x + dir.x &lt; max_x) { //if in bound move along x
+    else if (!hit_x_bound()) { //if in bound move along x
         drones[id].x += dir.x;
     }
-    else { // move y until new track
+    else { // cannot move further x and not hit y bound =&gt; move y until new track or end
         drones[id].y += dir.y;
-        if ((drones[id].y - min_y - Nv) % (2 * Nv + 1) == 0) { //on the last y-move flip x direction
+        if (on_track() &amp;&amp; !hit_y_bound()) { //on the last y-move flip x direction
             dir.x = -dir.x;
         }
     }
@@ -548,10 +566,24 @@ void move() {
     pos_t newPos;
     pos_delta_t posDelta;
     int[0,3] rnd;
-    int k;
+    int k;   
+    t=0;
+
+    // Checking if a tile near an exit is available
+    for(k=0; k&lt;4; k++) {
+        posDelta = shifts[k];
+        if (!positionInvalid(oldPos.x+posDelta.x, oldPos.y+posDelta.y)) {
+            newPos.x = oldPos.x + posDelta.x;
+            newPos.y = oldPos.y + posDelta.y;
+            if ( tileIsNearSomething(newPos, EXIT) &amp;&amp; (!isOccupied(newPos)) ) {
+                survivors[id] = newPos;
+                return;
+            }
+        }
+    }
+
+    // Moving randomly
     rnd = randomNumber();
-
-
     for(k=0; k&lt;4; k++) {
         posDelta = shifts[(rnd+k)%4];
         if (!positionInvalid(oldPos.x+posDelta.x, oldPos.y+posDelta.y)) {
@@ -559,11 +591,10 @@ void move() {
             newPos.y = oldPos.y + posDelta.y;
             if ( (!tileIsNearSomething(newPos, FIRE)) &amp;&amp; (!isOccupied(newPos)) ) {
                 survivors[id] = newPos;
-                k=4;
+                return;
             }
         }
     }
-    t = 0;
 }
 
 // Returns the ID of the closest entity, using the util function
@@ -735,6 +766,9 @@ resp1 = Responder(1);
 resp2 = Responder(2);
 resp3 = Responder(3);
 resp4 = Responder(4);
+resp5 = Responder(5);
+resp6 = Responder(6);
+resp7 = Responder(7);
 
 surv0 = Survivor(0);
 surv1 = Survivor(1);
@@ -744,19 +778,15 @@ surv4 = Survivor(4);
 surv5 = Survivor(5);
 surv6 = Survivor(6);
 surv7 = Survivor(7);
-surv8 = Survivor(8);
-surv9 = Survivor(9);
 
 vict0 = Victim(0);
 vict1 = Victim(1);
 vict2 = Victim(2);
 vict3 = Victim(3);
 vict4 = Victim(4);
-vict5 = Victim(5);
-vict6 = Victim(6);
 
 // System definition
-system drone0, drone1, drone2, drone3, resp0, resp1, resp2, resp3, resp4, surv0, surv1, surv2, surv3, surv4, surv5, surv6, surv7, surv8, surv9, vict0, vict1, vict2, vict3, vict4, vict5, vict6;</system>
+system drone0, drone1, drone2, drone3, resp0, resp1, resp2, resp3, resp4, resp5, resp6, resp7, surv0, surv1, surv2, surv3, surv4, surv5, surv6, surv7, vict0, vict1, vict2, vict3, vict4;</system>
 	<queries>
 		<query>
 			<formula/>
