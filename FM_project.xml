@@ -100,6 +100,7 @@ id_v_t survToFRVictim[FIRST_RESPONDERS_QTY];
 
 int[0, RAND_VEC_SIZE-1] randomIdx = 0;
 int[0,SURVIVORS_QTY+VICTIMS_QTY] n_safe_civilians = 0;
+int[0,SURVIVORS_QTY] n_helping_civilians = 0;
 
 // Manhattan distance since motion is on the 4 cardinal directions
 int distance(pos_t pos1, pos_t pos2){
@@ -649,6 +650,11 @@ void exitMap() {
     n_safe_civilians++;
 }
 
+void exitMapAfterHelp(){
+    n_helping_civilians++;
+    exitMap();
+}
+
 void helpBeginning() {
     survivors_busy[id] = true;
     victim = getClosest(VICTIM);
@@ -728,8 +734,8 @@ void helpBeginningWithFR(){
 		<transition id="id45">
 			<source ref="id37"/>
 			<target ref="id33"/>
-			<label kind="guard" x="986" y="0">t &gt;= T_fr</label>
-			<label kind="assignment" x="986" y="25">exitMap()</label>
+			<label kind="guard" x="977" y="0">t &gt;= T_fr</label>
+			<label kind="assignment" x="935" y="25">exitMapAfterHelp()</label>
 		</transition>
 		<transition id="id46">
 			<source ref="id32"/>
@@ -754,7 +760,7 @@ void helpBeginningWithFR(){
 			<target ref="id33"/>
 			<label kind="guard" x="756" y="127">t &gt;= T_zr</label>
 			<label kind="synchronisation" x="739" y="178">save[victim]!</label>
-			<label kind="assignment" x="756" y="153">exitMap()</label>
+			<label kind="assignment" x="722" y="153">exitMapAfterHelp()</label>
 		</transition>
 		<transition id="id50">
 			<source ref="id32"/>
