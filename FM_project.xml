@@ -504,7 +504,7 @@ pos_t getClosestPos(int type) {
 }
 
 bool survivorNear() {
-    if ( distance(drones[id], getClosestPos(SURVIVOR)) &gt; Nv || distance(drones[id], getClosestPos(VICTIM)) &gt; Nv || survivors_busy[getClosest(SURVIVOR)] ) {
+    if ( distance(drones[id], getClosestPos(SURVIVOR)) &gt; Nv || distance(drones[id], getClosestPos(VICTIM)) &gt; Nv ) {
         return false;
     }
     return true;
