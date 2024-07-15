@@ -219,6 +219,25 @@ bool tileIsNearSomething(pos_t p, int type) {
     return false;
 }
 
+bool tileIsNearVictim(pos_t p) {
+    int[0,VICTIMS_QTY] k;
+    for(k=0; k&lt;VICTIMS_QTY; k++) {
+        if (victims[k].x == p.x &amp;&amp; p.y&lt;M &amp;&amp; victims[k].y == p.y+1) {
+            return true;
+        }
+        if (victims[k].x == p.x &amp;&amp; p.y&gt;0 &amp;&amp; victims[k].y == p.y-1) {
+            return true;
+        }
+        if (victims[k].y == p.y &amp;&amp; p.x&lt;N &amp;&amp; victims[k].x == p.x+1) {
+            return true;
+        }
+        if (victims[k].y == p.y &amp;&amp; p.x&gt;0 &amp;&amp; victims[k].x == p.x-1) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool positionInvalid(int[-1,N+1] x, int[-1,M+1] y) {
     return x &lt; 0 || y &lt; 0 || x &gt;= N || y &gt;= M;
 }</declaration>
@@ -236,7 +255,22 @@ void move() {
     pos_delta_t posDelta;
     int[0,3] rnd = randomValue;
     int k;
+    t_resp = 0;
 
+    // Checking if a tile near a victim is available
+    for(k=0; k&lt;4; k++) {
+        posDelta = shifts[k];
+        if (!positionInvalid(oldPos.x+posDelta.x, oldPos.y+posDelta.y)) {
+            newPos.x = oldPos.x + posDelta.x;
+            newPos.y = oldPos.y + posDelta.y;
+            if ( tileIsNearVictim(newPos) &amp;&amp; (!isOccupied(newPos)) ) {
+                responders[id] = newPos;
+                return;
+            }
+        }
+    }
+
+    // Moving randomly
     for(k=0; k&lt;4; k++) {
         posDelta = shifts[(rnd+k)%4];
         if (!positionInvalid(oldPos.x+posDelta.x, oldPos.y+posDelta.y)) {
@@ -248,7 +282,7 @@ void move() {
             }
         }
     }
-    t_resp = 0;
+
 }
 
 // Returns the ID of the closest entity, using the util function
@@ -836,8 +870,6 @@ system drone0, drone1, resp0, resp1, resp2, surv0, surv1, surv2, surv3, surv4, s
 		<query>
 			<formula>E&lt;&gt; n_safe_civilians &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*N_perc/100) and globalTime &lt;= T_scs</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2024-07-11 23:29:22 +0200">
-			</result>
 		</query>
 	</queries>
 </nta>
