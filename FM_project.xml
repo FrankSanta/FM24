@@ -529,42 +529,35 @@ bool survivorWillHelp() {
 			<name x="-110" y="348">Communicating</name>
 			<committed/>
 		</location>
-		<location id="id24" x="348" y="-34">
-			<committed/>
-		</location>
 		<init ref="id21"/>
-		<transition id="id25">
-			<source ref="id24"/>
+		<transition id="id24">
+			<source ref="id23"/>
 			<target ref="id22"/>
-			<label kind="synchronisation" x="0" y="-76">waitForSurvivor[getClosest(FIRST_RESPONDER)]!</label>
+			<label kind="guard" x="-51" y="17">survivorWillHelp()</label>
+			<label kind="synchronisation" x="-51" y="51">rescue[getClosest(SURVIVOR)]!</label>
+		</transition>
+		<transition id="id25">
+			<source ref="id23"/>
+			<target ref="id22"/>
+			<label kind="guard" x="170" y="153">!survivorWillHelp()</label>
+			<label kind="synchronisation" x="0" y="195">callFirstResponder[getClosest(SURVIVOR)]!</label>
+			<nail x="331" y="314"/>
+			<nail x="331" y="-34"/>
 		</transition>
 		<transition id="id26">
-			<source ref="id23"/>
-			<target ref="id22"/>
-			<label kind="guard" x="-51" y="59">survivorWillHelp()</label>
-			<label kind="synchronisation" x="-51" y="93">rescue[getClosest(SURVIVOR)]!</label>
-		</transition>
-		<transition id="id27">
-			<source ref="id23"/>
-			<target ref="id24"/>
-			<label kind="guard" x="357" y="111">!survivorWillHelp()</label>
-			<label kind="synchronisation" x="357" y="136">callFirstResponder[getClosest(SURVIVOR)]!</label>
-			<nail x="348" y="314"/>
-		</transition>
-		<transition id="id28">
 			<source ref="id21"/>
 			<target ref="id23"/>
-			<label kind="guard" x="-510" y="161">survivorNear()</label>
+			<label kind="guard" x="-365" y="153">survivorNear()</label>
 			<nail x="-374" y="314"/>
 		</transition>
-		<transition id="id29">
+		<transition id="id27">
 			<source ref="id22"/>
 			<target ref="id21"/>
 			<label kind="guard" x="-238" y="8">t&gt;=1</label>
 			<label kind="assignment" x="-238" y="34">t=0</label>
 			<nail x="-221" y="0"/>
 		</transition>
-		<transition id="id30">
+		<transition id="id28">
 			<source ref="id21"/>
 			<target ref="id22"/>
 			<label kind="guard" x="-272" y="-110">!survivorNear()</label>
@@ -633,15 +626,15 @@ bool nearExit() {
 }
 
 void doneReachingFR() {
-    survivors[id] = getClosestPos(FIRST_RESPONDER);
+    survivors[id] = responderPos;
     t = 0;
 }
 void doneReachingVictim() {
-    survivors[id]=getClosestPos(VICTIM);
+    survivors[id]=victimPos;
     t = 0;
 }
 void doneReachingAlone() {
-    survivors[id]=getClosestPos(VICTIM);
+    survivors[id]=victimPos;
     t = 0;
 }
 void exitMap() {
@@ -657,125 +650,133 @@ void exitMapAfterHelp(){
 void helpBeginning() {
     survivors_busy[id] = true;
     victim = getClosest(VICTIM);
-    responder = getClosest(FIRST_RESPONDER);
     victimPos = victims[victim];
-    responderPos = responders[responder];
 }
 
 void helpBeginningWithFR(){
     helpBeginning();
+    responder = getClosest(FIRST_RESPONDER);
+    responderPos = responders[responder];
     survToFRVictim[responder] = victim;
 }</declaration>
-		<location id="id31" x="-162" y="442">
+		<location id="id29" x="-162" y="442">
 			<name x="-195" y="399">Deciding</name>
 			<committed/>
 		</location>
-		<location id="id32" x="408" y="442">
+		<location id="id30" x="408" y="442">
 			<name x="433" y="434">Moving</name>
 			<label kind="invariant" x="441" y="459">t&lt;=1</label>
 		</location>
-		<location id="id33" x="977" y="119">
+		<location id="id31" x="977" y="119">
 			<name x="960" y="144">Safe</name>
 		</location>
-		<location id="id34" x="646" y="119">
+		<location id="id32" x="646" y="119">
 			<name x="620" y="85">Helping</name>
 			<label kind="invariant" x="612" y="59">t &lt;= T_zr</label>
 		</location>
-		<location id="id35" x="170" y="119">
+		<location id="id33" x="170" y="119">
 			<name x="109" y="85">Reaching_alone</name>
 			<label kind="invariant" x="25" y="59">t &lt;= distance(survivors[id], victimPos)</label>
 		</location>
-		<location id="id36" x="-170" y="-76">
+		<location id="id34" x="-170" y="-76">
 			<name x="-212" y="-110">Reaching_FR</name>
 			<label kind="invariant" x="-314" y="-136">t &lt;= distance(survivors[id], responderPos)</label>
 		</location>
-		<location id="id37" x="977" y="-76">
+		<location id="id35" x="977" y="-76">
 			<name x="918" y="-110">Helping_with_FR</name>
 			<label kind="invariant" x="943" y="-136">t &lt;= T_fr</label>
 		</location>
-		<location id="id38" x="408" y="-76">
+		<location id="id36" x="408" y="-76">
 			<name x="349" y="-110">Reaching_victim</name>
 			<label kind="invariant" x="246" y="-136">t &lt;= distance(survivors[id], victimPos)</label>
 		</location>
-		<location id="id39" x="289" y="280">
+		<location id="id37" x="289" y="280">
 			<committed/>
 		</location>
-		<location id="id40" x="-170" y="204">
+		<location id="id38" x="-170" y="204">
 			<committed/>
 		</location>
-		<init ref="id32"/>
+		<location id="id39" x="-170" y="51">
+			<committed/>
+		</location>
+		<init ref="id30"/>
+		<transition id="id40">
+			<source ref="id38"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="-161" y="127">waitForSurvivor[responder]!</label>
+		</transition>
 		<transition id="id41">
-			<source ref="id40"/>
-			<target ref="id36"/>
-			<label kind="synchronisation" x="-161" y="42">helping[victim]!</label>
-			<label kind="assignment" x="-119" y="68">t = 0</label>
+			<source ref="id39"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="-161" y="-25">helping[victim]!</label>
+			<label kind="assignment" x="-161" y="0">t = 0</label>
 		</transition>
 		<transition id="id42">
-			<source ref="id39"/>
-			<target ref="id35"/>
+			<source ref="id37"/>
+			<target ref="id33"/>
 			<label kind="synchronisation" x="102" y="204">helping[victim]!</label>
 			<label kind="assignment" x="153" y="229">t=0</label>
 		</transition>
 		<transition id="id43">
-			<source ref="id38"/>
-			<target ref="id37"/>
+			<source ref="id36"/>
+			<target ref="id35"/>
 			<label kind="guard" x="535" y="-68">t &gt;= distance(survivors[id], victimPos)</label>
 			<label kind="assignment" x="612" y="-42">doneReachingVictim()</label>
 		</transition>
 		<transition id="id44">
-			<source ref="id36"/>
-			<target ref="id38"/>
+			<source ref="id34"/>
+			<target ref="id36"/>
 			<label kind="guard" x="-59" y="-68">t &gt;= distance(survivors[id], responderPos)</label>
-			<label kind="synchronisation" x="34" y="-17">goToVictim[victim]!</label>
+			<label kind="synchronisation" x="17" y="-17">goToVictim[responder]!</label>
 			<label kind="assignment" x="42" y="-42">doneReachingFR()</label>
 			<nail x="391" y="-76"/>
 		</transition>
 		<transition id="id45">
-			<source ref="id37"/>
-			<target ref="id33"/>
+			<source ref="id35"/>
+			<target ref="id31"/>
 			<label kind="guard" x="977" y="0">t &gt;= T_fr</label>
 			<label kind="assignment" x="935" y="25">exitMapAfterHelp()</label>
 		</transition>
 		<transition id="id46">
-			<source ref="id32"/>
-			<target ref="id40"/>
+			<source ref="id30"/>
+			<target ref="id38"/>
 			<label kind="synchronisation" x="-144" y="280">callFirstResponder[id]?</label>
 			<label kind="assignment" x="-127" y="306">helpBeginningWithFR()</label>
 		</transition>
 		<transition id="id47">
-			<source ref="id35"/>
-			<target ref="id34"/>
+			<source ref="id33"/>
+			<target ref="id32"/>
 			<label kind="guard" x="246" y="136">t &gt;= distance(survivors[id], victimPos)</label>
 			<label kind="assignment" x="323" y="161">doneReachingAlone()</label>
 		</transition>
 		<transition id="id48">
-			<source ref="id32"/>
-			<target ref="id39"/>
+			<source ref="id30"/>
+			<target ref="id37"/>
 			<label kind="synchronisation" x="340" y="323">rescue[id]?</label>
 			<label kind="assignment" x="348" y="348">helpBeginning()</label>
 		</transition>
 		<transition id="id49">
-			<source ref="id34"/>
-			<target ref="id33"/>
+			<source ref="id32"/>
+			<target ref="id31"/>
 			<label kind="guard" x="756" y="127">t &gt;= T_zr</label>
 			<label kind="synchronisation" x="739" y="178">save[victim]!</label>
 			<label kind="assignment" x="722" y="153">exitMapAfterHelp()</label>
 		</transition>
 		<transition id="id50">
-			<source ref="id32"/>
-			<target ref="id31"/>
+			<source ref="id30"/>
+			<target ref="id29"/>
 			<label kind="guard" x="25" y="450">t&gt;=1 &amp;&amp; !nearExit()</label>
 			<label kind="assignment" x="93" y="476">t=0</label>
 		</transition>
 		<transition id="id51">
-			<source ref="id32"/>
-			<target ref="id33"/>
+			<source ref="id30"/>
+			<target ref="id31"/>
 			<label kind="guard" x="671" y="289">nearExit()</label>
 			<label kind="assignment" x="671" y="314">exitMap()</label>
 		</transition>
 		<transition id="id52">
-			<source ref="id31"/>
-			<target ref="id32"/>
+			<source ref="id29"/>
+			<target ref="id30"/>
 			<label kind="synchronisation" x="68" y="382">readRandom!</label>
 			<label kind="assignment" x="85" y="365">move()</label>
 			<nail x="110" y="408"/>
