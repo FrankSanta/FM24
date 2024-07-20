@@ -881,6 +881,9 @@ system Drone, Responder, Survivor, Victim;
 			forall(i : id_f_t) map[responders[i].x][responders[i].y] != FIRE</formula>
 			<comment>Any entity is never in the fire</comment>
 			<option key="--search-order" value="0"/>
+			<result outcome="success" type="quality" timestamp="2024-07-20 17:38:00 +0200">
+				<option key="--search-order" value="0"/>
+			</result>
 		</query>
 		<query>
 			<formula>A[] 	forall(s1 : id_s_t) forall(s2 : id_s_t) ( s1!=s2 and (not Survivor(s1).Safe) and (not Survivor(s2).Safe) ) imply survivors[s1] != survivors[s2] and
@@ -890,6 +893,20 @@ system Drone, Responder, Survivor, Victim;
 			<result outcome="success" type="quality" timestamp="2024-07-20 17:09:54 +0200">
 				<option key="--diagnostic" value="0"/>
 			</result>
+		</query>
+		<query>
+			<formula>A[] (forall(i : id_s_t) !Survivor(i).Safe imply (survivors[i].x &lt; N and survivors[i].y &lt; M)
+	and ((survivors[i].x &lt; N and survivors[i].y &lt; M) imply !Survivor(i).Safe)) 
+	and (forall(j : id_v_t) !Victim(j).Safe imply (victims[j].x &lt; N and victims[j].y &lt; M)
+	and ((victims[j].x &lt; N and victims[j].y &lt; M) imply !Victim(j).Safe))</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2024-07-20 18:28:38 +0200">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] (forall (i:id_d_t) Drone(i).Communicating) imply A&lt;&gt; (Victim(utilGetClosest(1, drones[i])).Safe and globalTime &lt; T_v) or (Victim(utilGetClosest(1, drones[i])).Casualty and globalTime &gt;= T_v)</formula>
+			<comment/>
 		</query>
 		<query>
 			<formula>A[] not deadlock</formula>
