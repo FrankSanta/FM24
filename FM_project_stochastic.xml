@@ -469,11 +469,12 @@ void setBusy() {
 	</template>
 	<template>
 		<name>Drone</name>
-		<parameter>const id_d_t id, const int[0,5] Nv</parameter>
+		<parameter>const id_d_t id</parameter>
 		<declaration>// Place local declarations here.
 
 clock t; 
 pos_delta_t dir = {-1, -1};
+int[0,5] Nv = 0;
 
 bool hit_x_bound(){
     coordx_t min_x = bounds[id].min_x;
@@ -497,6 +498,8 @@ void patrol() {
     coordx_t max_x = bounds[id].max_x;
     coordy_t min_y = bounds[id].min_y;
     coordy_t max_y = bounds[id].max_y;
+
+    Nv = drones_visibilities[id];
     if (hit_x_bound() &amp;&amp; hit_y_bound()){ //hit both bounds ==&gt; flip directions and restart
         dir.x = -dir.x;
         dir.y = -dir.y;
@@ -541,7 +544,6 @@ bool survivorWillHelp() {
         return true;
     return false;
 }
-
 </declaration>
 		<location id="id21" x="-374" y="-34">
 			<name x="-408" y="-76">Deciding</name>
@@ -1290,18 +1292,48 @@ Mean estimate of displayed sample: 6.1111 ± 0.10098 (95% CI)</comment>
 			</result>
 		</query>
 		<query>
-			<formula>Pr[&lt;= 1000] ([] 	forall(i : id_s_t) not Survivor(i).Safe imply map[survivors[i].x][survivors[i].y] != FIRE and
+			<formula>Pr[&lt;=1000] ([] 		forall(i : id_s_t) not Survivor(i).Safe imply map[survivors[i].x][survivors[i].y] != FIRE and
 			forall(i : id_v_t) not Victim(i).Safe imply map[victims[i].x][victims[i].y] != FIRE and
 			forall(i : id_f_t) map[responders[i].x][responders[i].y] != FIRE
 )</formula>
 			<comment>Any entity is never in the fire</comment>
+			<result outcome="success" type="interval" value="≥ 0.950056 (95% CI)" timestamp="2024-07-20 23:22:54 +0200">
+				<details>≥ 0.950056 (95% CI)</details>
+			</result>
 		</query>
 		<query>
-			<formula>Pr[&lt;= 1000] ([] 	forall(s1 : id_s_t) forall(s2 : id_s_t) ( s1!=s2 and (not Survivor(s1).Safe) and (not Survivor(s2).Safe) ) imply survivors[s1] != survivors[s2] and
+			<formula>Pr[&lt;=1000] ([]	 	forall(s1 : id_s_t) forall(s2 : id_s_t) ( s1!=s2 and (not Survivor(s1).Safe) and (not Survivor(s2).Safe) ) imply survivors[s1] != survivors[s2] and
 			forall(r1 : id_f_t) forall(r2 : id_f_t) ( r1!=r2 ) imply responders[r1] != responders[r2] and
-			forall(s : id_s_t) forall(r : id_f_t) ( not Survivor(s1).Safe ) imply survivors[s] != responders[r]
-)</formula>
+			forall(s : id_s_t) forall(r : id_f_t) ( not Survivor(s).Safe ) imply survivors[s] != responders[r]
+)
+</formula>
 			<comment>Any entity is never in an occupied cell</comment>
+			<result outcome="success" type="interval" value="≥ 0.950056 (95% CI)" timestamp="2024-07-20 23:22:08 +0200">
+				<details>≥ 0.950056 (95% CI)</details>
+			</result>
+		</query>
+		<query>
+			<formula>Pr[&lt;=1000] ([] 		(forall(i : id_s_t) !Survivor(i).Safe imply (survivors[i].x &lt; N and survivors[i].y &lt; M) and
+			((survivors[i].x &lt; N and survivors[i].y &lt; M) imply !Survivor(i).Safe)) and
+			(forall(j : id_v_t) !Victim(j).Safe imply (victims[j].x &lt; N and victims[j].y &lt; M) and
+			((victims[j].x &lt; N and victims[j].y &lt; M) imply !Victim(j).Safe))
+)</formula>
+			<comment>Survivors and victims that are not out of the map have a valid position</comment>
+			<result outcome="success" type="interval" value="≥ 0.950056 (95% CI)" timestamp="2024-07-20 22:29:40 +0200">
+				<details>≥ 0.950056 (95% CI)</details>
+			</result>
+		</query>
+		<query>
+			<formula>Pr[&lt;=1000] ([] 		(globalTime &lt;= T_scs imply forall(id : id_d_t)
+			bounds[id].min_x &gt;= 0 and bounds[id].max_x &lt; N and
+			bounds[id].min_y &gt;= 0 and bounds[id].max_y &lt; M and
+			drones[id].x &gt;= bounds[id].min_x and drones[id].x &lt;= bounds[id].max_x and 
+			drones[id].y &gt;= bounds[id].min_y and drones[id].y &lt;= bounds[id].max_y)
+)</formula>
+			<comment>Bounds of the drones are valid and a drone never goes out of its bounds</comment>
+			<result outcome="success" type="interval" value="≥ 0.950056 (95% CI)" timestamp="2024-07-20 23:22:40 +0200">
+				<details>≥ 0.950056 (95% CI)</details>
+			</result>
 		</query>
 	</queries>
 </nta>
