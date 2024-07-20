@@ -913,5 +913,16 @@ system Drone, Responder, Survivor, Victim;
 			<comment/>
 			<option key="--search-order" value="0"/>
 		</query>
+		<query>
+			<formula>A[] (globalTime &lt;= T_scs imply forall(id : id_d_t)
+bounds[id].min_x &gt;= 0 and bounds[id].max_x &lt; N and
+bounds[id].min_y &gt;= 0 and bounds[id].max_y &lt; M and
+drones[id].x &gt;= bounds[id].min_x and drones[id].x &lt;= bounds[id].max_x and 
+drones[id].y &gt;= bounds[id].min_y and drones[id].y &lt;= bounds[id].max_y)</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2024-07-20 19:23:34 +0200">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
 	</queries>
 </nta>
