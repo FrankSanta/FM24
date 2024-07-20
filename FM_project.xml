@@ -849,7 +849,7 @@ void helpBeginningWithFR(){
 		<transition id="id52">
 			<source ref="id29"/>
 			<target ref="id30"/>
-			<label kind="assignment" x="85" y="365">move()</label>
+			<label kind="assignment" x="85" y="382">move()</label>
 			<nail x="110" y="408"/>
 		</transition>
 	</template>
@@ -908,7 +908,6 @@ system Drone, Responder, Survivor, Victim;
 		<query>
 			<formula>A[] not deadlock</formula>
 			<comment/>
-			<option key="--search-order" value="0"/>
 		</query>
 		<query>
 			<formula>A[] (globalTime &lt;= T_scs imply forall(id : id_d_t)
@@ -918,6 +917,14 @@ drones[id].x &gt;= bounds[id].min_x and drones[id].x &lt;= bounds[id].max_x and
 drones[id].y &gt;= bounds[id].min_y and drones[id].y &lt;= bounds[id].max_y)</formula>
 			<comment>Bounds of the drones are valid and a drone never goes out of its bounds</comment>
 			<result outcome="success" type="quality" timestamp="2024-07-20 19:23:34 +0200">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] forall(i : id_s_t) Survivor(i).Moving imply not tileIsNearSomething(survivors[i], FIRE)</formula>
+			<comment>A survivor never moves near the fire</comment>
+			<option key="--diagnostic" value="0"/>
+			<result outcome="success" type="quality" timestamp="2024-07-20 23:54:48 +0200">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>

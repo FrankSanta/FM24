@@ -902,7 +902,7 @@ void helpBeginningWithFR(){
 		<transition id="id65">
 			<source ref="id32"/>
 			<target ref="id33"/>
-			<label kind="assignment" x="-76" y="408">move()</label>
+			<label kind="assignment" x="85" y="382">move()</label>
 			<nail x="110" y="408"/>
 		</transition>
 	</template>
@@ -1331,8 +1331,15 @@ Mean estimate of displayed sample: 6.1111 ± 0.10098 (95% CI)</comment>
 			drones[id].y &gt;= bounds[id].min_y and drones[id].y &lt;= bounds[id].max_y)
 )</formula>
 			<comment>Bounds of the drones are valid and a drone never goes out of its bounds</comment>
-			<result outcome="success" type="interval" value="≥ 0.950056 (95% CI)" timestamp="2024-07-20 23:22:40 +0200">
+			<result outcome="success" type="interval" value="≥ 0.950056 (95% CI)" timestamp="2024-07-20 23:49:50 +0200">
 				<details>≥ 0.950056 (95% CI)</details>
+			</result>
+		</query>
+		<query>
+			<formula>Pr[&lt;=1000] ([] forall(i : id_s_t) not Survivor(i).Safe imply not tileIsNearSomething(survivors[i], FIRE))</formula>
+			<comment>A survivor never moves near the fire</comment>
+			<result outcome="success" type="interval" value="≤ 0.0499441 (95% CI)" timestamp="2024-07-20 23:55:55 +0200">
+				<details>≤ 0.0499441 (95% CI)</details>
 			</result>
 		</query>
 	</queries>
