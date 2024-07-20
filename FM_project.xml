@@ -7,7 +7,8 @@ const int T_zr = 7;       // assistance time of a zero responder
 const int T_v = 35;       // becoming-casualty time for victims
 
 // Constants for the verification properties
-const int N_perc = 50; 
+const int N_perc_always_safe = 50;
+const int N_perc_sometimes_safe = 75;
 const int T_scs = T_v + 10;
 
 // Entity type
@@ -93,7 +94,6 @@ int[0,2] map[N][M] = {
 chan rescue[SURVIVORS_QTY], callFirstResponder[SURVIVORS_QTY], waitForSurvivor[FIRST_RESPONDERS_QTY], goToVictim[FIRST_RESPONDERS_QTY], helping[VICTIMS_QTY], save[VICTIMS_QTY];
 id_v_t survToFRVictim[FIRST_RESPONDERS_QTY];
 
-int[0,SURVIVORS_QTY+VICTIMS_QTY] n_safe_civilians = 0;
 int[0,SURVIVORS_QTY] n_helping_civilians = 0;
 
 // Manhattan distance since motion is on the 4 cardinal directions
@@ -246,7 +246,7 @@ id_v_t victim;
 pos_t victimPos;
 
 bool can_go_to(pos_t pos){
-    return  !isOccupied(pos) &amp;&amp; map[pos.x][pos.y] != FIRE;
+    return !isOccupied(pos) &amp;&amp; map[pos.x][pos.y] != FIRE;
 }
 
 // Returns the ID of the closest entity, using the util function
@@ -315,8 +315,9 @@ void move() {
             }
         }
     }
-    
-    responders[id] = newPos;
+    if (can_go_to(newPos)) { 
+        responders[id] = newPos;
+    }   
     return;
 }
 
@@ -419,7 +420,6 @@ void doneHelping(){
 		<parameter>const id_v_t id</parameter>
 		<declaration>void exitMap() {
     victims[id] = pos_out_of_map;
-    n_safe_civilians++;
 }
 
 void setBusy() {
@@ -678,8 +678,9 @@ void move() {
             }
         }
     }
-    
-    survivors[id] = newPos;
+    if (can_go_to(newPos)) {
+        survivors[id] = newPos;
+    }
     return;
 }
 
@@ -712,7 +713,6 @@ void doneReachingAlone() {
 }
 void exitMap() {
     survivors[id] = pos_out_of_map;
-    n_safe_civilians++;
 }
 
 void exitMapAfterHelp(){
@@ -858,47 +858,43 @@ void helpBeginningWithFR(){
 system Drone, Responder, Survivor, Victim;
 </system>
 	<queries>
-		<option key="--search-order" value="2"/>
+		<option key="--diagnostic" value="0"/>
 		<query>
-			<formula>A&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe + sum(v : id_v_t) Victim(v).Safe) &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*25/100) and globalTime &lt;= T_scs</formula>
-			<comment/>
-		</query>
-		<query>
-			<formula>A&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe + sum(v : id_v_t) Victim(v).Safe) &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*50/100) and globalTime &lt;= T_scs</formula>
-			<comment/>
-		</query>
-		<query>
-			<formula>A&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe + sum(v : id_v_t) Victim(v).Safe) &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*10/100) and globalTime &lt;= T_scs</formula>
-			<comment/>
-		</query>
-		<query>
-			<formula>A&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe + sum(v : id_v_t) Victim(v).Safe) &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*25/100) and globalTime &lt;= T_scs</formula>
-			<comment/>
-			<result outcome="success" type="quality" timestamp="2024-07-20 15:57:18 +0200">
+			<formula>A&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe + sum(v : id_v_t) Victim(v).Safe) &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*N_perc_always_safe/100) and globalTime &lt;= T_scs</formula>
+			<comment>A percentage N_perc_always_safe of all civilians is always guaranteed to reach a safe state within T_scs</comment>
+			<option key="--search-order" value="0"/>
+			<result outcome="success" type="quality" timestamp="2024-07-20 16:31:08 +0200">
 				<option key="--search-order" value="2"/>
 			</result>
 		</query>
 		<query>
-			<formula>A&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe + sum(v : id_v_t) Victim(v).Safe) &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*50/100) and globalTime &lt;= T_scs</formula>
-			<comment/>
-		</query>
-		<query>
-			<formula>E&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe + sum(v : id_v_t) Victim(v).Safe) &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*90/100) and globalTime &lt;= T_scs</formula>
-			<comment/>
-			<result outcome="success" type="quality" timestamp="2024-07-20 15:49:14 +0200">
+			<formula>E&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe + sum(v : id_v_t) Victim(v).Safe) &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*N_perc_sometimes_safe/100) and globalTime &lt;= T_scs</formula>
+			<comment>It possible, for a percentage N_perc_sometimes_safe of all civilians, to reach a safe state within T_scs</comment>
+			<option key="--search-order" value="1"/>
+			<result outcome="success" type="quality" timestamp="2024-07-20 16:31:08 +0200">
 				<option key="--search-order" value="2"/>
 			</result>
 		</query>
 		<query>
-			<formula>E&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe + sum(v : id_v_t) Victim(v).Safe) &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*75/100) and globalTime &lt;= T_scs</formula>
-			<comment/>
-			<result outcome="success" type="quality" timestamp="2024-07-20 15:49:14 +0200">
-				<option key="--search-order" value="2"/>
+			<formula>A[] 	forall(i : id_s_t) not Survivor(i).Safe imply map[survivors[i].x][survivors[i].y] != FIRE and
+			forall(i : id_v_t) not Victim(i).Safe imply map[victims[i].x][victims[i].y] != FIRE and
+			forall(i : id_f_t) map[responders[i].x][responders[i].y] != FIRE</formula>
+			<comment>Any entity is never in the fire</comment>
+			<option key="--search-order" value="0"/>
+		</query>
+		<query>
+			<formula>A[] 	forall(s1 : id_s_t) forall(s2 : id_s_t) ( s1!=s2 and (not Survivor(s1).Safe) and (not Survivor(s2).Safe) ) imply survivors[s1] != survivors[s2] and
+	forall(r1 : id_f_t) forall(r2 : id_f_t) ( r1!=r2 ) imply responders[r1] != responders[r2] and
+	forall(s : id_s_t) forall(r : id_f_t) ( not Survivor(s1).Safe ) imply survivors[s] != responders[r]</formula>
+			<comment>Any entity is never in an occupied cell</comment>
+			<result outcome="success" type="quality" timestamp="2024-07-20 17:09:54 +0200">
+				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
 			<formula>A[] not deadlock</formula>
 			<comment/>
+			<option key="--search-order" value="0"/>
 		</query>
 	</queries>
 </nta>
