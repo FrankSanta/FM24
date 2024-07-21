@@ -14,7 +14,8 @@ const int Surv_p_always_safe = 99;
 const int Vict_p_always_safe = 83;
 const int Civilians_p_sometimes_safe = 99; 
 const int Surv_p_sometimes_safe = 100;
-const int Vict_p_sometimes_safe = 99; 
+const int Vict_p_sometimes_safe = 99;
+const int Civilians_p_helping = 30;
 const int T_scs = T_v + 10;
 
 // Entity type
@@ -1297,7 +1298,7 @@ Mean estimate of displayed sample: 4.782 ± 0.3625 (95% CI)</comment>
 		</query>
 		<query>
 			<formula>Pr[&lt;= T_scs] (&lt;&gt; (sum(v : id_v_t) Victim(v).Safe) &gt;= (VICTIMS_QTY * Vict_p_always_safe/100) and globalTime &lt;= T_scs)</formula>
-			<comment/>
+			<comment>A percentage Vict_p_always_safe of all victims is always guaranteed to reach a safe state within T_scs</comment>
 			<result outcome="success" type="interval" value="≥ 0.950056 (95% CI)" timestamp="2024-07-21 12:31:57 +0200">
 				<details>≥ 0.950056 (95% CI)</details>
 				<plot title="Probability Density Distribution" xaxis="run duration in time" yaxis="probability density">
@@ -1734,7 +1735,7 @@ Mean estimate of displayed sample: 11.139 ± 0.049141 (95% CI)</comment>
 		</query>
 		<query>
 			<formula>Pr[&lt;= T_scs] (&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe) &gt;= (SURVIVORS_QTY * Surv_p_sometimes_safe/100) and globalTime &lt;= T_scs)</formula>
-			<comment/>
+			<comment>It possible, for a percentage Surv_p_sometimes_safe of all survivors, to reach a safe state within T_scs</comment>
 			<result outcome="success" type="interval" value="≥ 0.950056 (95% CI)" timestamp="2024-07-21 12:31:58 +0200">
 				<details>≥ 0.950056 (95% CI)</details>
 				<plot title="Probability Density Distribution" xaxis="run duration in time" yaxis="probability density">
@@ -1925,7 +1926,7 @@ Mean estimate of displayed sample: 11.14 ± 0.36 (95% CI)</comment>
 		</query>
 		<query>
 			<formula>Pr[&lt;= T_scs] (&lt;&gt; (sum(v : id_v_t) Victim(v).Safe) &gt;= (VICTIMS_QTY * Vict_p_sometimes_safe/100) and globalTime &lt;= T_scs)</formula>
-			<comment/>
+			<comment>It possible, for a percentage Vict_p_sometimes_safe of all victims, to reach a safe state within T_scs</comment>
 			<result outcome="success" type="quantity" value="0.477887 ± 0.0497908 (95% CI)" timestamp="2024-07-21 12:31:59 +0200">
 				<details>0.477887 ± 0.0497908 (95% CI)</details>
 				<plot title="Probability Density Distribution" xaxis="run duration in time" yaxis="probability density">
@@ -2166,6 +2167,98 @@ Mean estimate of displayed sample: 11.119 ± 0.046118 (95% CI)</comment>
 Runs: 404 in total, 193 (47.772%) displayed, 211 (52.228%) remaining
 Span of displayed sample: [11, 12]
 Mean estimate of displayed sample: 11.119 ± 0.046118 (95% CI)</comment>
+				</plot>
+			</result>
+		</query>
+		<query>
+			<formula>Pr[&lt;= T_scs] (&lt;&gt; n_helping_civilians &gt;= (SURVIVORS_QTY * Civilians_p_helping/100))</formula>
+			<comment>A percentage Civilians_p_helping of all civilians is always guaranteed to help a victim before exiting the map</comment>
+			<result outcome="success" type="interval" value="≥ 0.950056 (95% CI)" timestamp="2024-07-21 13:05:58 +0200">
+				<details>≥ 0.950056 (95% CI)</details>
+				<plot title="Probability Density Distribution" xaxis="run duration in time" yaxis="probability density">
+					<series title="density" type="b(0.000000)" color="0x0000ff" encoding="csv">0.0,4.503599627370496E15
+					</series>
+					<series title="average" type="pl" color="0x00dd00" encoding="csv">0.0,0.0
+0.0,4.503599627370496E15
+					</series>
+					<comment>Parameters: α=0.05, ε=0.05, bucket width=2.2204e-16, bucket count=1
+Runs: 72 in total, 72 (100%) displayed, 0 (0%) remaining
+Span of displayed sample: [0, 0]
+Mean estimate of displayed sample: ≈ 0</comment>
+				</plot>
+				<plot title="Probability Density Confidence Intervals" xaxis="run duration in time" yaxis="probability density">
+					<series title="upper limit" type="b(0.000000)" color="0xa0a0ff" encoding="csv">0.0,1.0
+					</series>
+					<series title="lower limit" type="b(0.000000)" color="0x0000ff" encoding="csv">0.0,0.9500559162941453
+					</series>
+					<series title="average" type="pl" color="0x00dd00" encoding="csv">0.0,0.0
+0.0,4.503599627370496E15
+					</series>
+					<comment>Parameters: α=0.05, ε=0.05, bucket width=2.2204e-16, bucket count=1
+Runs: 72 in total, 72 (100%) displayed, 0 (0%) remaining
+Span of displayed sample: [0, 0]
+Mean estimate of displayed sample: ≈ 0</comment>
+				</plot>
+				<plot title="Probability Distribution" xaxis="run duration in time" yaxis="probability">
+					<series title="probability" type="b(0.000000)" color="0x0000ff" encoding="csv">0.0,1.0
+					</series>
+					<series title="average" type="pl" color="0x00dd00" encoding="csv">0.0,0.0
+0.0,1.0
+					</series>
+					<comment>Parameters: α=0.05, ε=0.05, bucket width=2.2204e-16, bucket count=1
+Runs: 72 in total, 72 (100%) displayed, 0 (0%) remaining
+Span of displayed sample: [0, 0]
+Mean estimate of displayed sample: ≈ 0</comment>
+				</plot>
+				<plot title="Probability Confidence Intervals" xaxis="run duration in time" yaxis="probability">
+					<series title="upper limit" type="b(0.000000)" color="0xa0a0ff" encoding="csv">0.0,1.0
+					</series>
+					<series title="lower limit" type="b(0.000000)" color="0x0000ff" encoding="csv">0.0,0.9500559162941453
+					</series>
+					<series title="average" type="pl" color="0x00dd00" encoding="csv">0.0,0.0
+0.0,1.0
+					</series>
+					<comment>Parameters: α=0.05, ε=0.05, bucket width=2.2204e-16, bucket count=1
+Runs: 72 in total, 72 (100%) displayed, 0 (0%) remaining
+Span of displayed sample: [0, 0]
+Mean estimate of displayed sample: ≈ 0</comment>
+				</plot>
+				<plot title="Cumulative Probability Distribution" xaxis="run duration in time" yaxis="probability">
+					<series title="cumulative" type="l" color="0x000000" encoding="csv">0.0,0.0
+					</series>
+					<series title="average" type="pl" color="0x00dd00" encoding="csv">0.0,0.0
+0.0,1.0
+					</series>
+					<comment>Parameters: α=0.05, ε=0.05, bucket width=2.2204e-16, bucket count=1
+Runs: 72 in total, 72 (100%) displayed, 0 (0%) remaining
+Span of displayed sample: [0, 0]
+Mean estimate of displayed sample: ≈ 0</comment>
+				</plot>
+				<plot title="Cumulative Probability Confidence Intervals" xaxis="run duration in time" yaxis="probability">
+					<series title="upper limit" type="k" color="0x0000dd" encoding="csv">0.0,0.04994408370585468
+					</series>
+					<series title="lower limit" type="k" color="0xdd0000" encoding="csv">0.0,0.0
+					</series>
+					<series title="cumulative" type="l" color="0x000000" encoding="csv">0.0,0.0
+					</series>
+					<series title="average" type="pl" color="0x00dd00" encoding="csv">0.0,0.0
+0.0,1.0
+					</series>
+					<comment>Parameters: α=0.05, ε=0.05, bucket width=2.2204e-16, bucket count=1
+Runs: 72 in total, 72 (100%) displayed, 0 (0%) remaining
+Span of displayed sample: [0, 0]
+Mean estimate of displayed sample: ≈ 0</comment>
+				</plot>
+				<plot title="Frequency Histogram" xaxis="run duration in time" yaxis="count">
+					<series title="count" type="b(0.000000)" color="0x0000ff" encoding="csv">0.0,72.0
+					</series>
+					<series title="average" type="pl" color="0x00dd00" encoding="csv">0.0,0.0
+0.0,72.0
+					</series>
+					<comment>Parameters: α=0.05, ε=0.05, bucket width=2.2204e-16, bucket count=1
+Runs: 72 in total, 72 (100%) displayed, 0 (0%) remaining
+Span of displayed sample: [0, 0]
+Mean estimate of displayed sample: ≈ 0</comment>
 				</plot>
 			</result>
 		</query>

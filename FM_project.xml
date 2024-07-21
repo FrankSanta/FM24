@@ -12,7 +12,8 @@ const int Surv_p_always_safe = 99;
 const int Vict_p_always_safe = 83;
 const int Civilians_p_sometimes_safe = 99; 
 const int Surv_p_sometimes_safe = 100;
-const int Vict_p_sometimes_safe = 99; 
+const int Vict_p_sometimes_safe = 99;
+const int Civilians_p_helping = 30;
 const int T_scs = T_v + 10;
 
 // Entity type
@@ -910,6 +911,12 @@ system Drone, Responder, Survivor, Victim;
 			</result>
 		</query>
 		<query>
+			<formula>A&lt;&gt; n_helping_civilians &gt;= (SURVIVORS_QTY * Civilians_p_helping/100)</formula>
+			<comment>A percentage Civilians_p_helping of all civilians is always guaranteed to help a victim before exiting the map</comment>
+			<result outcome="success" type="quality" timestamp="2024-07-21 13:08:29 +0200">
+			</result>
+		</query>
+		<query>
 			<formula>A[] 	forall(i : id_s_t) not Survivor(i).Safe imply map[survivors[i].x][survivors[i].y] != FIRE and
 			forall(i : id_v_t) not Victim(i).Safe imply map[victims[i].x][victims[i].y] != FIRE and
 			forall(i : id_f_t) map[responders[i].x][responders[i].y] != FIRE</formula>
@@ -957,8 +964,6 @@ drones[id].y &gt;= bounds[id].min_y and drones[id].y &lt;= bounds[id].max_y)</fo
 		<query>
 			<formula>A[] forall(i : id_s_t) Survivor(i).Moving imply not tileIsNearSomething(survivors[i], FIRE)</formula>
 			<comment>A survivor never moves near the fire</comment>
-			<result outcome="success" type="quality" timestamp="2024-07-21 12:07:40 +0200">
-			</result>
 		</query>
 	</queries>
 </nta>
