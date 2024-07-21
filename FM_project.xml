@@ -4,11 +4,15 @@
 	<declaration>clock globalTime;
 const int T_fr = 5;       // assistance time of a first responder
 const int T_zr = 7;       // assistance time of a zero responder
-const int T_v = 10;        // becoming-casualty time for victims
+const int T_v = 12;       // becoming-casualty time for victims
 
 // Constants for the verification properties
-const int N_perc_always_safe = 90;
-const int N_perc_sometimes_safe = 100;
+const int Civilians_p_always_safe = 77; 
+const int Surv_p_always_safe = 99;
+const int Vict_p_always_safe = 83;
+const int Civilians_p_sometimes_safe = 99; 
+const int Surv_p_sometimes_safe = 100;
+const int Vict_p_sometimes_safe = 99; 
 const int T_scs = T_v + 10;
 
 // Entity type
@@ -37,11 +41,11 @@ typedef int[0,N] coordx_t;
 typedef int[0,M] coordy_t;
 
 // Entity amounts
-const int SURVIVORS_QTY = 4;
-const int VICTIMS_QTY = 8;
+const int SURVIVORS_QTY = 3;
+const int VICTIMS_QTY = 6;
 const int FIRST_RESPONDERS_QTY = 3;
 const int DRONES_QTY = 2;
-int[0,8] entities[4] = {SURVIVORS_QTY, VICTIMS_QTY, FIRST_RESPONDERS_QTY, DRONES_QTY};
+int[0,6] entities[4] = {SURVIVORS_QTY, VICTIMS_QTY, FIRST_RESPONDERS_QTY, DRONES_QTY};
 
 // IDs
 typedef int[0,SURVIVORS_QTY-1] id_s_t;
@@ -66,9 +70,9 @@ typedef struct {
     coordx_t max_x;
     coordy_t max_y;
 } bounds_t;// Positions for survivors, victims and first responders
-pos_t survivors[SURVIVORS_QTY] = {{0,5}, {3,6}, {1,8}, {1,5}};
-pos_t victims[VICTIMS_QTY] = {{8,7}, {9,7}, {3,0}, {7,0}, {0,2}, {7,1}, {1,2}, {7,7}};
-pos_t responders[FIRST_RESPONDERS_QTY] = {{6,4}, {3,1}, {3,8}};
+pos_t survivors[SURVIVORS_QTY] = {{4,8}, {4,2}, {0,0}};
+pos_t victims[VICTIMS_QTY] = {{7,2}, {1,2}, {6,4}, {2,2}, {8,9}, {4,5}};
+pos_t responders[FIRST_RESPONDERS_QTY] = {{3,1}, {4,9}, {9,2}};
 
 // Positions and area bounds for drones
 pos_t drones[DRONES_QTY] = {{2,2}, {2,7}};
@@ -76,16 +80,16 @@ bounds_t bounds[DRONES_QTY] = {{2 , 2, 7, 3}, {2 , 7, 7, 7}};
 int drones_visibilities[DRONES_QTY] = {2,2};
 
 int[0,2] map[N][M] = {
-  {1,1,0,0,0,0,0,0,0,0},
-  {1,1,0,0,0,0,0,0,0,0},
-  {1,1,0,0,0,0,0,0,0,0},
   {0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,1,1,1,0,0,0,0},
+  {0,0,0,1,1,1,0,0,0,0},
+  {0,0,0,1,1,1,0,0,0,0},
   {0,0,0,0,0,0,0,0,0,0},
   {2,0,0,0,0,0,0,0,0,2},
-  {2,0,1,1,0,0,0,0,0,2},
-  {0,0,1,0,1,1,1,0,0,0},
-  {1,1,1,1,1,1,1,0,0,0},
-  {1,1,0,0,1,1,1,0,0,0}
+  {2,0,0,0,0,0,0,0,0,2},
+  {0,0,0,1,1,1,0,1,0,0},
+  {0,0,0,1,1,1,0,1,1,0},
+  {0,0,0,1,1,1,0,1,1,1}
 };
 //#################################################################
 
@@ -752,7 +756,7 @@ void helpBeginningWithFR(){
 		</location>
 		<location id="id34" x="-170" y="-76">
 			<name x="-212" y="-110">Reaching_FR</name>
-			<label kind="invariant" x="-229" y="-136">t &lt;= distance(survivors[id], responderPos)</label>
+			<label kind="invariant" x="-212" y="-136">t &lt;= distance(survivors[id], responderPos)</label>
 		</location>
 		<location id="id35" x="977" y="-76">
 			<name x="918" y="-110">Helping_with_FR</name>
@@ -858,18 +862,50 @@ system Drone, Responder, Survivor, Victim;
 </system>
 	<queries>
 		<query>
-			<formula>A&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe + sum(v : id_v_t) Victim(v).Safe) &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*N_perc_always_safe/100) and globalTime &lt;= T_scs</formula>
-			<comment>A percentage N_perc_always_safe of all civilians is always guaranteed to reach a safe state within T_scs</comment>
+			<formula>A&lt;&gt; ((sum(v : id_v_t) Victim(v).Safe) + (sum(v : id_s_t) Survivor(v).Safe)) &gt;= ((VICTIMS_QTY + SURVIVORS_QTY) * Civilians_p_always_safe/100) and globalTime &lt;= T_scs</formula>
+			<comment>A percentage Civilians_p_always_safe of all civilians is always guaranteed to reach a safe state within T_scs</comment>
 			<option key="--search-order" value="0"/>
-			<result outcome="success" type="quality" timestamp="2024-07-20 22:12:27 +0200">
+			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:14 +0200">
 				<option key="--search-order" value="0"/>
 			</result>
 		</query>
 		<query>
-			<formula>E&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe + sum(v : id_v_t) Victim(v).Safe) &gt;= ((SURVIVORS_QTY+VICTIMS_QTY)*N_perc_sometimes_safe/100) and globalTime &lt;= T_scs</formula>
-			<comment>It possible, for a percentage N_perc_sometimes_safe of all civilians, to reach a safe state within T_scs</comment>
+			<formula>A&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe) &gt;= (SURVIVORS_QTY * Surv_p_always_safe/100) and globalTime &lt;= T_scs</formula>
+			<comment>A percentage Surv_p_always_safe of all survivors is always guaranteed to reach a safe state within T_scs</comment>
+			<option key="--search-order" value="0"/>
+			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:14 +0200">
+				<option key="--search-order" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A&lt;&gt; (sum(v : id_v_t) Victim(v).Safe) &gt;= (VICTIMS_QTY * Vict_p_always_safe/100) and globalTime &lt;= T_scs</formula>
+			<comment>A percentage Vict_p_always_safe of all victims is always guaranteed to reach a safe state within T_scs</comment>
+			<option key="--search-order" value="0"/>
+			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:14 +0200">
+				<option key="--search-order" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; ((sum(s : id_s_t) Survivor(s).Safe) + (sum(v : id_v_t) Victim(v).Safe)) &gt;= ((SURVIVORS_QTY + VICTIMS_QTY) * Civilians_p_sometimes_safe/100) and globalTime &lt;= T_scs</formula>
+			<comment>It possible, for a percentage Civilians_p_sometimes_safe of all civilians, to reach a safe state within T_scs</comment>
 			<option key="--search-order" value="1"/>
-			<result outcome="success" type="quality" timestamp="2024-07-20 22:12:16 +0200">
+			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:14 +0200">
+				<option key="--search-order" value="1"/>
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; (sum(s : id_s_t) Survivor(s).Safe) &gt;= (SURVIVORS_QTY * Surv_p_sometimes_safe/100) and globalTime &lt;= T_scs</formula>
+			<comment>It possible, for a percentage Surv_p_sometimes_safe of all survivors, to reach a safe state within T_scs</comment>
+			<option key="--search-order" value="1"/>
+			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:14 +0200">
+				<option key="--search-order" value="1"/>
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; (sum(v : id_v_t) Victim(v).Safe) &gt;= (VICTIMS_QTY * Vict_p_sometimes_safe/100) and globalTime &lt;= T_scs</formula>
+			<comment>It possible, for a percentage Vict_p_sometimes_safe of all victims, to reach a safe state within T_scs</comment>
+			<option key="--search-order" value="1"/>
+			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:15 +0200">
 				<option key="--search-order" value="1"/>
 			</result>
 		</query>
@@ -878,9 +914,7 @@ system Drone, Responder, Survivor, Victim;
 			forall(i : id_v_t) not Victim(i).Safe imply map[victims[i].x][victims[i].y] != FIRE and
 			forall(i : id_f_t) map[responders[i].x][responders[i].y] != FIRE</formula>
 			<comment>Any entity is never in the fire</comment>
-			<option key="--search-order" value="0"/>
-			<result outcome="success" type="quality" timestamp="2024-07-20 17:38:00 +0200">
-				<option key="--search-order" value="0"/>
+			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:17 +0200">
 			</result>
 		</query>
 		<query>
@@ -888,8 +922,7 @@ system Drone, Responder, Survivor, Victim;
 	forall(r1 : id_f_t) forall(r2 : id_f_t) ( r1!=r2 ) imply responders[r1] != responders[r2] and
 	forall(s : id_s_t) forall(r : id_f_t) ( not Survivor(s).Safe and not Survivor(s).Reaching_victim ) imply survivors[s] != responders[r]</formula>
 			<comment>Any entity is never in an occupied cell</comment>
-			<result outcome="success" type="quality" timestamp="2024-07-21 09:47:33 +0200">
-				<option key="--diagnostic" value="0"/>
+			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:20 +0200">
 			</result>
 		</query>
 		<query>
@@ -898,8 +931,7 @@ system Drone, Responder, Survivor, Victim;
 	and (forall(j : id_v_t) !Victim(j).Safe imply (victims[j].x &lt; N and victims[j].y &lt; M)
 	and ((victims[j].x &lt; N and victims[j].y &lt; M) imply !Victim(j).Safe))</formula>
 			<comment>Survivors and victims that are not out of the map have a valid position</comment>
-			<result outcome="success" type="quality" timestamp="2024-07-20 18:28:38 +0200">
-				<option key="--diagnostic" value="0"/>
+			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:23 +0200">
 			</result>
 		</query>
 		<query>
@@ -909,11 +941,7 @@ system Drone, Responder, Survivor, Victim;
 		<query>
 			<formula>A[] not deadlock</formula>
 			<comment/>
-			<option key="--exploration" value="0"/>
-			<option key="--diagnostic" value="1"/>
-			<result outcome="success" type="quality" timestamp="2024-07-21 11:36:35 +0200">
-				<option key="--exploration" value="0"/>
-				<option key="--diagnostic" value="1"/>
+			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:28 +0200">
 			</result>
 		</query>
 		<query>
@@ -923,16 +951,13 @@ bounds[id].min_y &gt;= 0 and bounds[id].max_y &lt; M and
 drones[id].x &gt;= bounds[id].min_x and drones[id].x &lt;= bounds[id].max_x and 
 drones[id].y &gt;= bounds[id].min_y and drones[id].y &lt;= bounds[id].max_y)</formula>
 			<comment>Bounds of the drones are valid and a drone never goes out of its bounds</comment>
-			<result outcome="success" type="quality" timestamp="2024-07-20 19:23:34 +0200">
-				<option key="--diagnostic" value="0"/>
+			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:31 +0200">
 			</result>
 		</query>
 		<query>
 			<formula>A[] forall(i : id_s_t) Survivor(i).Moving imply not tileIsNearSomething(survivors[i], FIRE)</formula>
 			<comment>A survivor never moves near the fire</comment>
-			<option key="--diagnostic" value="0"/>
-			<result outcome="success" type="quality" timestamp="2024-07-20 23:54:48 +0200">
-				<option key="--diagnostic" value="0"/>
+			<result outcome="success" type="quality" timestamp="2024-07-21 12:07:40 +0200">
 			</result>
 		</query>
 	</queries>
