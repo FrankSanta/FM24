@@ -918,18 +918,18 @@ system Drone, Responder, Survivor, Victim;
 		</query>
 		<query>
 			<formula>A[] 	forall(i : id_s_t) not Survivor(i).Safe imply map[survivors[i].x][survivors[i].y] != FIRE and
-			forall(i : id_v_t) not Victim(i).Safe imply map[victims[i].x][victims[i].y] != FIRE and
-			forall(i : id_f_t) map[responders[i].x][responders[i].y] != FIRE</formula>
-			<comment>Any entity is never in the fire</comment>
-			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:17 +0200">
+	forall(i : id_v_t) not Victim(i).Safe imply map[victims[i].x][victims[i].y] != FIRE and
+	forall(i : id_f_t) map[responders[i].x][responders[i].y] != FIRE</formula>
+			<comment>It is always guaranteed that any person is never in the fire</comment>
+			<result outcome="success" type="quality" timestamp="2024-07-21 17:35:20 +0200">
 			</result>
 		</query>
 		<query>
 			<formula>A[] 	forall(s1 : id_s_t) forall(s2 : id_s_t) ( s1!=s2 and (not Survivor(s1).Safe) and (not Survivor(s2).Safe) ) imply survivors[s1] != survivors[s2] and
 	forall(r1 : id_f_t) forall(r2 : id_f_t) ( r1!=r2 ) imply responders[r1] != responders[r2] and
-	forall(s : id_s_t) forall(r : id_f_t) ( not Survivor(s).Safe and not Survivor(s).Reaching_victim ) imply survivors[s] != responders[r]</formula>
-			<comment>Any entity is never in an occupied cell</comment>
-			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:20 +0200">
+	forall(s : id_s_t) forall(r : id_f_t) ( not Survivor(s).Safe and not Survivor(s).Reaching_victim and not Survivor(s).Helping_with_FR) imply survivors[s] != responders[r]</formula>
+			<comment>It is always guaranteed that two people are not in the same cell</comment>
+			<result outcome="success" type="quality" timestamp="2024-07-21 19:53:05 +0200">
 			</result>
 		</query>
 		<query>
@@ -937,33 +937,29 @@ system Drone, Responder, Survivor, Victim;
 	and ((survivors[i].x &lt; N and survivors[i].y &lt; M) imply !Survivor(i).Safe)) 
 	and (forall(j : id_v_t) !Victim(j).Safe imply (victims[j].x &lt; N and victims[j].y &lt; M)
 	and ((victims[j].x &lt; N and victims[j].y &lt; M) imply !Victim(j).Safe))</formula>
-			<comment>Survivors and victims that are not out of the map have a valid position</comment>
+			<comment>It is always guaranteed that survivors and victims have a valid position if and only if they are safe</comment>
 			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:23 +0200">
 			</result>
 		</query>
 		<query>
-			<formula>A[] (forall (i:id_d_t) Drone(i).Communicating) imply A&lt;&gt; (Victim(utilGetClosest(VICTIM, drones[i])).Safe and globalTime &lt; T_v) or (Victim(utilGetClosest(VICTIM, drones[i])).Casualty and globalTime &gt;= T_v)</formula>
-			<comment>It is always guardanteed that, when a drone is in the communicating state, then eventually the victim closest to it </comment>
-		</query>
-		<query>
-			<formula>A[] not deadlock</formula>
-			<comment/>
-			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:28 +0200">
-			</result>
-		</query>
-		<query>
-			<formula>A[] (globalTime &lt;= T_scs imply forall(id : id_d_t)
+			<formula>A[] forall(id : id_d_t)
 bounds[id].min_x &gt;= 0 and bounds[id].max_x &lt; N and
 bounds[id].min_y &gt;= 0 and bounds[id].max_y &lt; M and
 drones[id].x &gt;= bounds[id].min_x and drones[id].x &lt;= bounds[id].max_x and 
-drones[id].y &gt;= bounds[id].min_y and drones[id].y &lt;= bounds[id].max_y)</formula>
-			<comment>Bounds of the drones are valid and a drone never goes out of its bounds</comment>
-			<result outcome="success" type="quality" timestamp="2024-07-21 11:59:31 +0200">
+drones[id].y &gt;= bounds[id].min_y and drones[id].y &lt;= bounds[id].max_y</formula>
+			<comment>It always guaranteed that for each drone bounds are valid and it never goes out of its bounds</comment>
+			<result outcome="success" type="quality" timestamp="2024-07-21 18:23:36 +0200">
 			</result>
 		</query>
 		<query>
 			<formula>A[] forall(i : id_s_t) Survivor(i).Moving imply not tileIsNearSomething(survivors[i], FIRE)</formula>
-			<comment>A survivor never moves near the fire</comment>
+			<comment>It is always guaranteed that a survivor never moves near the fire</comment>
+			<result outcome="success" type="quality" timestamp="2024-07-21 17:35:49 +0200">
+			</result>
+		</query>
+		<query>
+			<formula>A[] not deadlock</formula>
+			<comment/>
 		</query>
 	</queries>
 </nta>
