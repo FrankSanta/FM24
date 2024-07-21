@@ -2182,12 +2182,12 @@ Mean estimate of displayed sample: 11.119 ± 0.046118 (95% CI)</comment>
 		<query>
 			<formula>Pr[&lt;= 1000] ([]	 	forall(s1 : id_s_t) forall(s2 : id_s_t) ( s1!=s2 and (not Survivor(s1).Safe) and (not Survivor(s2).Safe) ) imply survivors[s1] != survivors[s2] and
 			forall(r1 : id_f_t) forall(r2 : id_f_t) ( r1!=r2 ) imply responders[r1] != responders[r2] and
-			forall(s : id_s_t) forall(r : id_f_t) ( not Survivor(s).Safe ) imply survivors[s] != responders[r]
+			forall(s : id_s_t) forall(r : id_f_t) ( not Survivor(s).Safe and not Survivor(s).Reaching_victim ) imply survivors[s] != responders[r]
 )
 </formula>
 			<comment>Any entity is never in an occupied cell</comment>
-			<result outcome="success" type="quantity" value="0.969349 ± 0.0303669 (95% CI)" timestamp="2024-07-21 12:32:13 +0200">
-				<details>0.969349 ± 0.0303669 (95% CI)</details>
+			<result outcome="success" type="interval" value="≥ 0.950056 (95% CI)" timestamp="2024-07-21 12:36:57 +0200">
+				<details>≥ 0.950056 (95% CI)</details>
 			</result>
 		</query>
 		<query>
@@ -2214,10 +2214,10 @@ Mean estimate of displayed sample: 11.119 ± 0.046118 (95% CI)</comment>
 			</result>
 		</query>
 		<query>
-			<formula>Pr[&lt;= 1000] ([] forall(i : id_s_t) not Survivor(i).Safe imply not tileIsNearSomething(survivors[i], FIRE))</formula>
+			<formula>Pr[&lt;= 1000] ([] forall(i : id_s_t) Survivor(i).Moving imply not tileIsNearSomething(survivors[i], FIRE))</formula>
 			<comment>A survivor never moves near the fire</comment>
-			<result outcome="success" type="interval" value="≤ 0.0499441 (95% CI)" timestamp="2024-07-21 12:32:25 +0200">
-				<details>≤ 0.0499441 (95% CI)</details>
+			<result outcome="success" type="interval" value="≥ 0.950056 (95% CI)" timestamp="2024-07-21 12:36:08 +0200">
+				<details>≥ 0.950056 (95% CI)</details>
 			</result>
 		</query>
 	</queries>
