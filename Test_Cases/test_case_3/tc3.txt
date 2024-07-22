@@ -43,7 +43,9 @@ pos_t responders[FIRST_RESPONDERS_QTY] = {{4,0}, {8,4}};
 // Positions and area bounds for drones
 pos_t drones[DRONES_QTY] = {{1,1}, {1,6}, {6,1}, {6,6}};
 bounds_t bounds[DRONES_QTY] = {{1 , 1, 4, 4}, {1 , 6, 4, 8}, {6 , 1, 8, 4}, {6 , 6, 8, 8}};
-int drones_visibilities[DRONES_QTY] = {1,1,1,1};
+int[1, 5] drones_visibilities[DRONES_QTY] = {1,1,1,1};
+int[0, 100] p_fail[DRONES_QTY] = {10, 10, 10, 10};
+int[0, 100] p_listen[SURVIVORS_QTY] = {85, 85, 85, 85};
 
 int[0,2] map[N][M] = {
   {0,0,0,0,0,2,2,0,0,0},
